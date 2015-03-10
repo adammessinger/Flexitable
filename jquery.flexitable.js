@@ -11,13 +11,15 @@
  **/
 
 ;(function($) {
-  $.fn.mediaTable = function(user_config) {
-    return this.each(function(i) {
+  var essential_class = 'essential';
+  var optional_class = 'optional';
+
+  $.fn.mediaTable = function(user_config) {    return this.each(function(i) {
       var $table = $(this);
       var config = $.extend({
         menu: true,
-        menuTitle: 'Columns:',
-        t: 'e',
+        button_title: 'Columns:',
+        //t: 'e',
         destroy: false
       }, (user_config || {}));
 
@@ -37,14 +39,14 @@
     var wdg, existing_wdg = $table.data('MediaTable');
 
     // Prevent re-initialization
-    if (!!existing_wdg && existing_wdg.$wrap) {
+    if (!!existing_wdg && existing_wdg.$wrapper) {
       return;
     }
 
     // Build the widget context.
     wdg = {
       $table: $table,
-      $wrap: $('<div class="mediaTableWrapper" />'),
+      $wrapper: $('<div class="mediaTableWrapper" />'),
       // $menu: will hold column toggle menu container
       $menu: null,
       // cfg: this table's Flexitable config
@@ -61,7 +63,7 @@
     wdg.$table.addClass('activeMediaTable');
 
     // Place the wrapper near the table
-    wdg.$table.before(wdg.$wrap);
+    wdg.$table.before(wdg.$wrapper);
 
     // Menu initialization logic.
     // NOTE: current logic requires this MUST run before column init
@@ -74,7 +76,7 @@
     wdg.$table.find('thead th').each(function(i) {
       _initHeaders.call(this, i, wdg);
     });
-    wdg.$table.appendTo(wdg.$wrap);
+    wdg.$table.appendTo(wdg.$wrapper);
     // update menu checkboxes, since no columns were visible when they were created
     // TODO: this is slow, so figure out a way to speed it up or build menu after table init
     wdg.$menu.find('input').trigger('updateCheck');
@@ -86,23 +88,21 @@
 
   function _initMenu(wdg) {
     // Build menu objects
-    wdg.$menu = $('<div />');
+    wdg.$menu = $('<div class="mediaTableMenu mediaTableMenuClosed" />');
     wdg.$menu.$button = $('<button type="button" />');
     wdg.$menu.$list = $('<ul />');
 
     // Setup menu general properties and append to DOM.
     wdg.$menu
-      .addClass('mediaTableMenu')
-      .addClass('mediaTableMenuClosed')
       .append(wdg.$menu.$button)
       .append(wdg.$menu.$list);
 
     // Add a class to the wrapper to inform about menu presence.
-    wdg.$wrap.addClass('mediaTableWrapperWithMenu');
+    wdg.$wrapper.addClass('mediaTableWrapperWithMenu');
 
     // Setup menu title (handler)
-    wdg.$menu.$button.text(wdg.cfg.menuTitle);
-    wdg.$menu.appendTo(wdg.$wrap);
+    wdg.$menu.$button.text(wdg.cfg.button_title);
+    wdg.$menu.appendTo(wdg.$wrapper);
 
     // Bind screen change events to update checkbox status of displayed fields.
     // TODO: debounce this
@@ -121,6 +121,41 @@
         wdg.$menu.addClass('mediaTableMenuClosed')
       }
     });
+  }
+
+
+  // TODO: flesh out to replace other init functions
+  function _initCellsByHeader(wdg) {
+    var $headers = wdg.$table.find('thead th');
+    var $table_cell_containers = wdg.$table.find('thead, tbody');
+    // cells_by_column: array of objects w/ each col's header txt and contained cells
+    var cells_by_column = [];
+    // loop vars:
+    var is_optional_col, is_essential_col, cell_num, $col_cells, i, l;
+
+    if (!$headers.length) {
+      return;
+    }
+
+    for (i = 0, l = $headers.length; i < l; i++) {
+      is_essential_col = $headers.eq(i).hasClass(essential_class);
+      is_optional_col = $headers.eq(i).hasClass(optional_class);
+      // NOTE: cell_num is used for nth-child selectors, which aren't 0-indexed
+      cell_num = i + 1;
+      $col_cells = $table_cell_containers.find('th:nth-child('+cell_num+'), td:nth-child('+cell_num+')');
+
+      $col_cells
+        .toggleClass(essential_class, is_essential_col)
+        .toggleClass(optional_class, is_optional_col);
+
+      cells_by_column.push({
+        heading: $headers.eq(i).text(),
+        cells: $col_cells
+      });
+    }
+
+    // store cell column info for use in menu init and elsewhere
+    wdg.cells_by_column = cells_by_column;
   }
 
 
@@ -197,7 +232,7 @@
     }
 
     // Remove the wrapper from the table.
-    wdg.$wrap.after(wdg.$table).remove();
+    wdg.$wrapper.after(wdg.$table).remove();
 
     // Remove Flexitable active class so media-query will not work.
     wdg.$table.removeClass('activeMediaTable');
