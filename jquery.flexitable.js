@@ -11,40 +11,54 @@
  **/
 
 ;(function($) {
+  $.fn.mediaTable = function(user_config) {
+    return this.each(function(i) {
+      var $table = $(this);
+      var config = $.extend({
+        menu: true,
+        menuTitle: 'Columns:',
+        t: 'e',
+        destroy: false
+      }, (user_config || {}));
+
+      if (config.destroy) {
+        _destroyFlexitable($table);
+      } else {
+        _initFlexitable($table, config, i);
+      }
+    });
+  };
+
 
   /**
-   * DOM Initialization Logic
+   * Flexitable DOM Initialization
    */
-  var __loop = function(cfg, i) {
+  function _initFlexitable($table, config, i) {
+    var wdg, existing_wdg = $table.data('MediaTable');
 
-    var $this = $(this);
-    var wdg = $this.data('MediaTable');
-
-    // Prevent re-initialization of the widget!
-    if (!$.isEmptyObject(wdg)) {
+    // Prevent re-initialization
+    if (!!existing_wdg && existing_wdg.$wrap) {
       return;
     }
 
     // Build the widget context.
     wdg = {
-      $wrap: $('<div>'),		// Refer to the main content of the widget
-      $table: $this,			// Refer to the MediaTable DOM (TABLE TAG)
-      $menu: false,			// Refer to the column's toggler menu container
-      cfg: cfg,			// widget local configuration object
-      id: $this.attr('id')
+      $table: $table,
+      $wrap: $('<div class="mediaTableWrapper" />'),
+      // $menu: will hold column toggle menu container
+      $menu: null,
+      // cfg: this table's Flexitable config
+      cfg: config,
+      id: $table[0].id
     };
 
-    // Setup Widget ID if not specified into DOM Table.
+    // Set table ID if not specified
     if (!wdg.id) {
       wdg.id = 'MediaTable-' + i;
-      wdg.$table.attr('id', wdg.id);
+      wdg.$table[0].id = wdg.id;
     }
 
-    // Activate the MediaTable.
     wdg.$table.addClass('activeMediaTable');
-
-    // Create the wrapper.
-    wdg.$wrap.addClass('mediaTableWrapper');
 
     // Place the wrapper near the table
     wdg.$table.before(wdg.$wrap);
@@ -52,64 +66,65 @@
     // Menu initialization logic.
     // NOTE: current logic requires this MUST run before column init
     if (wdg.cfg.menu) {
-      __initMenu(wdg);
+      _initMenu(wdg);
     }
 
     // Columns Initialization Loop. Table detached from DOM first for > 90% ++perf.
     wdg.$table.detach();
     wdg.$table.find('thead th').each(function(i) {
-      __thInit.call(this, i, wdg);
+      _initHeaders.call(this, i, wdg);
     });
     wdg.$table.appendTo(wdg.$wrap);
     // update menu checkboxes, since no columns were visible when they were created
     // TODO: this is slow, so figure out a way to speed it up or build menu after table init
     wdg.$menu.find('input').trigger('updateCheck');
 
-    // Save widget context into table DOM.
+    // Save widget data on table
     wdg.$table.data('MediaTable', wdg);
-  }; // EndOf: "__loop()" ###
+  }
 
 
-  var __initMenu = function(wdg) {
-
-    // Buid menu objects
+  function _initMenu(wdg) {
+    // Build menu objects
     wdg.$menu = $('<div />');
-    wdg.$menu.$header = $('<button />');
+    wdg.$menu.$button = $('<button type="button" />');
     wdg.$menu.$list = $('<ul />');
 
     // Setup menu general properties and append to DOM.
     wdg.$menu
       .addClass('mediaTableMenu')
       .addClass('mediaTableMenuClosed')
-      .append(wdg.$menu.$header)
+      .append(wdg.$menu.$button)
       .append(wdg.$menu.$list);
 
     // Add a class to the wrapper to inform about menu presence.
     wdg.$wrap.addClass('mediaTableWrapperWithMenu');
 
     // Setup menu title (handler)
-    wdg.$menu.$header.text(wdg.cfg.menuTitle);
+    wdg.$menu.$button.text(wdg.cfg.menuTitle);
     wdg.$menu.appendTo(wdg.$wrap);
 
     // Bind screen change events to update checkbox status of displayed fields.
+    // TODO: debounce this
     $(window).bind('orientationchange resize', function() {
       wdg.$menu.find('input').trigger('updateCheck');
     });
 
-    // Toggle list visibility when clicking the menu title.
-    wdg.$menu.$header.bind('click', function() {
+    // Toggle menu visibility when clicking the menu button.
+    wdg.$menu.$button.on('click', function() {
       wdg.$menu.toggleClass('mediaTableMenuClosed');
     });
 
-    // Toggle list visibilty when mouse go outside the list itself.
-    wdg.$menu.$list.bind('mouseleave', function(e) {
-      wdg.$menu.toggleClass('mediaTableMenuClosed');
-      e.stopPropagation();
+    // Close menu when user clicks outside the menu.
+    $(document).on('click', function(event) {
+      if (!wdg.$menu.find(event.target).length) {
+        wdg.$menu.addClass('mediaTableMenuClosed')
+      }
     });
-  }; // EndOf: "__initMenu()" ###
+  }
 
-  var __thInit = function(i, wdg) {
 
+  function _initHeaders(i, wdg) {
     var $th = $(this);
     var id = $th.attr('id');
     var classes = $th.attr('class');
@@ -126,17 +141,17 @@
       var $li = $('<li><input type="checkbox" name="toggle-cols" id="toggle-col-' + wdg.id + '-' + i + '" value="' + id + '" /> <label for="toggle-col-' + wdg.id + '-' + i + '">' + $th.text() + '</label></li>');
       wdg.$menu.$list.append($li);
 
-      __liInitActions($th, $li.find('input'), wdg);
+      _initColumnCheckbox($th, $li.find('input'), wdg);
     }
 
     // Propagate column's properties to each cell.
     wdg.$table.find('> tbody tr').each(function() {
-      __trInit.call(this, i, id, classes);
+      _initRows.call(this, i, id, classes);
     });
-  }; // EndOf: "__thInit()" ###
+  }
 
 
-  var __trInit = function(i, id, classes) {
+  function _initRows(i, id, classes) {
     var $cell = $(this).find('td,th').eq(i);
 
     $cell.attr('headers', id);
@@ -144,88 +159,50 @@
     if (classes) {
       $cell.addClass(classes);
     }
-  }; // EndOf: "__trInit()" ###
+  }
 
 
-  var __liInitActions = function($th, $checkbox, wdg) {
-    var change = function() {
-      // val: equals the header's ID, i.e. "company"
-      var val = $checkbox.val();
-      // cols: so we can easily find the matching header (id="company") and cells (headers="company")
+  function _initColumnCheckbox($th, $checkbox, wdg) {
+    $checkbox
+      .on('change', toggleColumn)
+      .on('updateCheck', updateCheck)
+      .trigger('updateCheck');
+
+    function toggleColumn() {
+      // val: equals the header's ID, i.e. "toggle-col-company-3"
+      var val = $checkbox[0].value;
+      // cols: find the matching header (#toggle-col-company-3)
+      // and cells ([headers="toggle-col-company-3"])
       var cols = wdg.$table.find("#" + val + ", [headers=" + val + "]");
 
       cols.toggleClass('mediaTableCellHidden', !$checkbox[0].checked);
-    };
+    }
 
-    var updateCheck = function() {
-      $checkbox[0].checked = ($th.css('display') === 'table-cell');
-    };
-
-    $checkbox
-      .bind('change', change)
-      .bind('updateCheck', updateCheck)
-      .trigger('updateCheck');
-  }; // EndOf: "__liInitActions()" ###
+    function updateCheck(event) {
+      event.target.checked = ($th.css('display') === 'table-cell');
+    }
+  }
 
 
 
   /**
-   * Widget Destroy Logic
+   * Flexitable Widget Destruction
    */
-
-  var __destroy = function() {
+  function _destroyFlexitable($table) {
     // Get the widget context.
-    var wdg = $(this).data('MediaTable');
+    var wdg = $table.data('MediaTable');
+
     if (!wdg) {
       return;
     }
 
-    // Remove the wrapper from the MediaTable.
+    // Remove the wrapper from the table.
     wdg.$wrap.after(wdg.$table).remove();
 
-    // Remove MediaTable active class so media-query will not work.
+    // Remove Flexitable active class so media-query will not work.
     wdg.$table.removeClass('activeMediaTable');
 
     // Remove DOM reference to the widget context.
     wdg.$table.data('MediaTable', null);
-  }; // EndOf: "__destroy()" ###
-
-
-  /**
-   * jQuery Extension
-   */
-  $.fn.mediaTable = function() {
-    var cfg = false;
-
-    // Default configuration block
-    if (!arguments.length || $.isPlainObject(arguments[0])) {
-      cfg = $.extend({}, {
-
-        // Teach the widget to create a toggle menu to declare column's visibility
-        menu: true,
-        menuTitle: 'Columns:',
-
-        t: 'e'
-      }, arguments[0]);
-    } // end of default configuration block
-
-    // Items initialization loop:
-    if (cfg !== false) {
-      $(this).each(function(i) {
-        __loop.call(this, cfg, i);
-      });
-    } else if (arguments.length) {
-      // Item actions loop - switch thru actions
-      switch (arguments[0]) {
-        case 'destroy':
-          $(this).each(function() {
-            __destroy.call(this);
-          });
-          break;
-      }
-    }
-
-    // Maintain chainability
-    return this;
-  }; // EndOf: "$.fn.mediaTable()" ###
+  }
 })(jQuery);
