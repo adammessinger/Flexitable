@@ -74,7 +74,6 @@
     // NOTE: MUST run after column init, not before
     if (wdg.cfg.has_menu) {
       _buildMenu(wdg);
-      _initMenuInteractions(wdg);
     }
 
     // Save widget data on table
@@ -118,6 +117,7 @@
       }
 
       cells_by_column.push({
+        $th: $this_header,
         heading_text: $this_header.text(),
         is_persistent_col: is_persistent_col,
         // NOTE: no need to store cells for persistent columns, so we don't to save memory
@@ -133,7 +133,7 @@
   function _buildMenu(wdg) {
     var cells_by_column = wdg.cells_by_column;
     var li_cache = [];
-    var i, l, $this_checkbox, $this_label, $matching_th;
+    var i, l, $this_checkbox, $this_label;
 
     // Build menu containers
     wdg.$menu = $('<div class="mediaTableMenu mediaTableMenuClosed" />');
@@ -149,17 +149,13 @@
     // populate menu with checkboxes for each non-persistent column
     for (i = 0, l = cells_by_column.length; i < l; i++) {
       if (!cells_by_column[i].is_persistent_col) {
-        $matching_th = cells_by_column[i].$cells.filter('th');
         $this_checkbox = $('<input />', {
           type: 'checkbox',
           name: 'toggle-cols',
           id: 'toggle-col-'+i,
           value: i
         });
-      $this_checkbox
-        .data('cells', cells_by_column[i].$cells)
-        // we're using the column heading's visibility as a proxy for the column's
-        .prop('checked', ($matching_th.css('display') === 'table-cell'));
+      $this_checkbox.data('cells', cells_by_column[i].$cells);
 
         $this_label = $('<label />', {
           for: 'toggle-col-'+i,
@@ -172,6 +168,10 @@
 
     wdg.$menu.$list.append(li_cache);
     wdg.$menu.prependTo(wdg.$wrapper);
+
+    _initMenuInteractions(wdg);
+    // trigger updateCheck event to mark checkboxes depending on column visibility (media queries may hide some)
+    wdg.$menu.$list.find('input[name="toggle-cols"]').trigger('updateCheck');
   }
 
 
@@ -208,12 +208,11 @@
     }
 
     function _updateCheckbox(event) {
+      var checkbox = event.target;
       // NOTE: checkbox value is the same as column index from wdg.cells_by_column
-      var $checkbox = $(event.target);
-      // $matching_th: we're using the th's visibility as a proxy for the whole column's
-      var $matching_th = $checkbox.data('cells').filter('th');
+      var i_col = checkbox.value;
 
-      $checkbox[0].checked = ($matching_th.css('display') === 'table-cell');
+      checkbox.checked = (wdg.cells_by_column[i_col].$th.css('display') === 'table-cell');
     }
   }
 
