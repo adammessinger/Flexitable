@@ -11,13 +11,14 @@
  **/
 
 ;(function($) {
+  var persistent_class = 'persist';
   var essential_class = 'essential';
   var optional_class = 'optional';
 
   $.fn.mediaTable = function(user_config) {    return this.each(function(i) {
       var $table = $(this);
       var config = $.extend({
-        menu: true,
+        has_menu: true,
         button_title: 'Columns:',
         //t: 'e',
         destroy: false
@@ -65,92 +66,55 @@
     // Place the wrapper near the table
     wdg.$table.before(wdg.$wrapper);
 
-    // Menu initialization logic.
-    // NOTE: current logic requires this MUST run before column init
-    if (wdg.cfg.menu) {
-      _initMenu(wdg);
-    }
-
-    // Columns Initialization Loop. Table detached from DOM first for > 90% ++perf.
     wdg.$table.detach();
-    wdg.$table.find('thead th').each(function(i) {
-      _initHeaders.call(this, i, wdg);
-    });
+    _initCellsByHeader(wdg);
     wdg.$table.appendTo(wdg.$wrapper);
-    // update menu checkboxes, since no columns were visible when they were created
-    // TODO: this is slow, so figure out a way to speed it up or build menu after table init
-    wdg.$menu.find('input').trigger('updateCheck');
+
+    // Menu initialization.
+    // NOTE: MUST run after column init, not before
+    if (wdg.cfg.has_menu) {
+      _buildMenu(wdg);
+      _initMenuInteractions(wdg);
+    }
 
     // Save widget data on table
     wdg.$table.data('MediaTable', wdg);
   }
 
 
-  function _initMenu(wdg) {
-    // Build menu objects
-    wdg.$menu = $('<div class="mediaTableMenu mediaTableMenuClosed" />');
-    wdg.$menu.$button = $('<button type="button" />');
-    wdg.$menu.$list = $('<ul />');
-
-    // Setup menu general properties and append to DOM.
-    wdg.$menu
-      .append(wdg.$menu.$button)
-      .append(wdg.$menu.$list);
-
-    // Add a class to the wrapper to inform about menu presence.
-    wdg.$wrapper.addClass('mediaTableWrapperWithMenu');
-
-    // Setup menu title (handler)
-    wdg.$menu.$button.text(wdg.cfg.button_title);
-    wdg.$menu.appendTo(wdg.$wrapper);
-
-    // Bind screen change events to update checkbox status of displayed fields.
-    // TODO: debounce this
-    $(window).bind('orientationchange resize', function() {
-      wdg.$menu.find('input').trigger('updateCheck');
-    });
-
-    // Toggle menu visibility when clicking the menu button.
-    wdg.$menu.$button.on('click', function() {
-      wdg.$menu.toggleClass('mediaTableMenuClosed');
-    });
-
-    // Close menu when user clicks outside the menu.
-    $(document).on('click', function(event) {
-      if (!wdg.$menu.find(event.target).length) {
-        wdg.$menu.addClass('mediaTableMenuClosed')
-      }
-    });
-  }
-
-
-  // TODO: flesh out to replace other init functions
   function _initCellsByHeader(wdg) {
     var $headers = wdg.$table.find('thead th');
-    var $table_cell_containers = wdg.$table.find('thead, tbody');
     // cells_by_column: array of objects w/ each col's header txt and contained cells
     var cells_by_column = [];
     // loop vars:
-    var is_optional_col, is_essential_col, cell_num, $col_cells, i, l;
+    var is_optional_col, is_essential_col, is_persistent_col;
+    var cell_num, $this_header, $col_cells, i, l;
 
     if (!$headers.length) {
+      if (window.console && console.warn) {
+        console.warn('No headers in table#' + wdg.$table[0].id);
+      }
       return;
     }
 
     for (i = 0, l = $headers.length; i < l; i++) {
-      is_essential_col = $headers.eq(i).hasClass(essential_class);
-      is_optional_col = $headers.eq(i).hasClass(optional_class);
+      $this_header = $headers.eq(i);
+      is_persistent_col = $this_header.hasClass(persistent_class);
+      is_essential_col = $this_header.hasClass(essential_class);
+      is_optional_col = $this_header.hasClass(optional_class);
       // NOTE: cell_num is used for nth-child selectors, which aren't 0-indexed
       cell_num = i + 1;
-      $col_cells = $table_cell_containers.find('th:nth-child('+cell_num+'), td:nth-child('+cell_num+')');
+      $col_cells = wdg.$table.find('thead th:nth-child('+cell_num+'), tbody td:nth-child('+cell_num+')');
 
       $col_cells
         .toggleClass(essential_class, is_essential_col)
         .toggleClass(optional_class, is_optional_col);
 
       cells_by_column.push({
-        heading: $headers.eq(i).text(),
-        cells: $col_cells
+        heading_text: $this_header.text(),
+        is_persistent_col: is_persistent_col,
+        // NOTE: no need to store cells for persistent columns, so we don't to save memory
+        $cells: is_persistent_col ? null : $col_cells
       });
     }
 
@@ -159,65 +123,90 @@
   }
 
 
-  function _initHeaders(i, wdg) {
-    var $th = $(this);
-    var id = $th.attr('id');
-    var classes = $th.attr('class');
+  function _buildMenu(wdg) {
+    var cells_by_column = wdg.cells_by_column;
+    var li_cache = [];
+    var i, l, $this_checkbox, $this_label, $matching_th;
 
-    // Set up an auto-generated ID for the column.
-    // the ID is based upon widget's ID to allow multiple tables into one page.
-    if (!id) {
-      id = wdg.id + '-mediaTableCol-' + i;
-      $th.attr('id', id);
+    // Build menu containers
+    wdg.$menu = $('<div class="mediaTableMenu mediaTableMenuClosed" />');
+    wdg.$menu.$button = $('<button type="button" />').text(wdg.cfg.button_title);
+    wdg.$menu.$list = $('<ul />');
+    wdg.$menu
+      .append(wdg.$menu.$button)
+      .append(wdg.$menu.$list);
+
+    // Add a class to the wrapper to inform about menu presence.
+    wdg.$wrapper.addClass('mediaTableWrapperWithMenu');
+
+    // populate menu with checkboxes for each non-persistent column
+    for (i = 0, l = cells_by_column.length; i < l; i++) {
+      if (!cells_by_column[i].is_persistent_col) {
+        $matching_th = cells_by_column[i].$cells.filter('th');
+        $this_checkbox = $('<input />', {
+          type: 'checkbox',
+          name: 'toggle-cols',
+          id: 'toggle-col-'+i,
+          value: i
+        });
+      $this_checkbox
+        .data('cells', cells_by_column[i].$cells)
+        // we're using the column heading's visibility as a proxy for the column's
+        .prop('checked', ($matching_th.css('display') === 'table-cell'));
+
+        $this_label = $('<label />', {
+          for: 'toggle-col-'+i,
+          text: cells_by_column[i].heading_text
+        });
+
+        li_cache.push($('<li />').append($this_checkbox).append($this_label))
+      }
     }
 
-    // Add toggle link to the menu.
-    if (wdg.cfg.menu && !$th.is('.persist')) {
-      var $li = $('<li><input type="checkbox" name="toggle-cols" id="toggle-col-' + wdg.id + '-' + i + '" value="' + id + '" /> <label for="toggle-col-' + wdg.id + '-' + i + '">' + $th.text() + '</label></li>');
-      wdg.$menu.$list.append($li);
-
-      _initColumnCheckbox($th, $li.find('input'), wdg);
-    }
-
-    // Propagate column's properties to each cell.
-    wdg.$table.find('> tbody tr').each(function() {
-      _initRows.call(this, i, id, classes);
-    });
+    wdg.$menu.$list.append(li_cache);
+    wdg.$menu.prependTo(wdg.$wrapper);
   }
 
 
-  function _initRows(i, id, classes) {
-    var $cell = $(this).find('td,th').eq(i);
+  function _initMenuInteractions(wdg) {
+    // Update checkbox status on viewport changes.
+    $(window).on('orientationchange resize', _updateCheckboxes);
+    // Close menu when user clicks outside the menu.
+    $(document).on('click', _closeMenuOnOutsideClick);
+    wdg.$menu
+      .on('click', 'button', _toggleMenu)
+      .on('change', 'input[name="toggle-cols"]', _toggleColumn)
+      .on('updateCheck', 'input[name="toggle-cols"]', _updateCheckbox);
 
-    $cell.attr('headers', id);
 
-    if (classes) {
-      $cell.addClass(classes);
+    // TODO: debounce this
+    function _updateCheckboxes() {
+      wdg.$menu.$list.find('input').trigger('updateCheck');
+    }
+
+    function _closeMenuOnOutsideClick(event) {
+      if (!wdg.$menu.find(event.target).length) {
+        wdg.$menu.addClass('mediaTableMenuClosed');
+      }
+    }
+
+    function _toggleMenu() {
+      wdg.$menu.toggleClass('mediaTableMenuClosed');
+    }
+
+    function _toggleColumn(event) {
+      $(event.target).data('cells').toggleClass('mediaTableCellHidden', !event.target.checked);
+    }
+
+    function _updateCheckbox(event) {
+      // NOTE: checkbox value is the same as column index from wdg.cells_by_column
+      var $checkbox = $(event.target);
+      // $matching_th: we're using the th's visibility as a proxy for the whole column's
+      var $matching_th = $checkbox.data('cells').filter('th');
+
+      $checkbox[0].checked = ($matching_th.css('display') === 'table-cell');
     }
   }
-
-
-  function _initColumnCheckbox($th, $checkbox, wdg) {
-    $checkbox
-      .on('change', toggleColumn)
-      .on('updateCheck', updateCheck)
-      .trigger('updateCheck');
-
-    function toggleColumn() {
-      // val: equals the header's ID, i.e. "toggle-col-company-3"
-      var val = $checkbox[0].value;
-      // cols: find the matching header (#toggle-col-company-3)
-      // and cells ([headers="toggle-col-company-3"])
-      var cols = wdg.$table.find("#" + val + ", [headers=" + val + "]");
-
-      cols.toggleClass('mediaTableCellHidden', !$checkbox[0].checked);
-    }
-
-    function updateCheck(event) {
-      event.target.checked = ($th.css('display') === 'table-cell');
-    }
-  }
-
 
 
   /**
