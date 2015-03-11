@@ -156,9 +156,7 @@
           id: 'toggle-col-'+i,
           value: i
         });
-      $this_checkbox
-        .prop('checked', cells_by_column[i].is_active)
-        .data('cells', cells_by_column[i].$cells);
+      $this_checkbox.prop('checked', cells_by_column[i].is_active);
 
         $this_label = $('<label />', {
           for: 'toggle-col-'+i,
