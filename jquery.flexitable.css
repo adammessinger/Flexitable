@@ -2,12 +2,9 @@
 Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 **/
 
-/* -----[[     S T R U C T U R E     ]]------------ */
+/* =Structure
+ ******************************************************************************/
 
-
-/**
- * Structural Style
- */
 .mediaTable {
 	width:100%;
 }
@@ -25,28 +22,29 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 	display:none !important;
 }
 
+.mediaTableCellShown {
+	display: table-cell !important;
+}
 
-
-/**
- * Active Media Table Rules
- * theese rules are applied to a table activated by the jQuery plugin.
- */
+/*-- Active table rules set baseline visibility for those w/o media query support --*/
+/* NOTE: All cells treated as "optional" by default (mobile first). Don't forget
+   to apply "essential" class to headers where needed. */
 
 .activeMediaTable th,
 .activeMediaTable td {
 	display: none;
 }
-
 .activeMediaTable th.essential,
 .activeMediaTable td.essential {
 	display: table-cell;
 }
 
 
-/* -----[[     B R E A C K      P O I N T S     ]]------------ */
+
+/* =Breakpoints
+ ******************************************************************************/
 
 @media screen and (min-width: 768px) {
-	
 	.activeMediaTable th.optional,
 	.activeMediaTable td.optional {
 		display: table-cell;
@@ -60,9 +58,9 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 }
 
 
-/**
- * Menu Style
- */
+
+/* =Menu
+ ******************************************************************************/
 
 .mediaTableMenu {
 	position:absolute;
