@@ -66,7 +66,6 @@
     // Place the wrapper near the table
     wdg.$table.before(wdg.$wrapper);
 
-    wdg.$table.detach();
     _initCellsByHeader(wdg);
     wdg.$table.appendTo(wdg.$wrapper);
 
@@ -117,6 +116,8 @@
       }
 
       cells_by_column.push({
+        // NOTE: we're using the th's visibility as a proxy for the column's
+        is_active: ($this_header.css('display') === 'table-cell'),
         $th: $this_header,
         heading_text: $this_header.text(),
         is_persistent_col: is_persistent_col,
@@ -155,7 +156,9 @@
           id: 'toggle-col-'+i,
           value: i
         });
-      $this_checkbox.data('cells', cells_by_column[i].$cells);
+      $this_checkbox
+        .prop('checked', cells_by_column[i].is_active)
+        .data('cells', cells_by_column[i].$cells);
 
         $this_label = $('<label />', {
           for: 'toggle-col-'+i,
@@ -170,14 +173,12 @@
     wdg.$menu.prependTo(wdg.$wrapper);
 
     _initMenuInteractions(wdg);
-    // trigger updateCheck event to mark checkboxes depending on column visibility (media queries may hide some)
-    wdg.$menu.$list.find('input[name="toggle-cols"]').trigger('updateCheck');
   }
 
 
   function _initMenuInteractions(wdg) {
     // Update checkbox status on viewport changes.
-    $(window).on('orientationchange resize', _updateCheckboxes);
+    $(window).on('orientationchange resize', _updateMenu);
     // Close menu when user clicks outside the menu.
     $(document).on('click', _closeMenuOnOutsideClick);
     wdg.$menu
@@ -187,7 +188,14 @@
 
 
     // TODO: debounce this
-    function _updateCheckboxes() {
+    function _updateMenu() {
+      var i, l, cells_by_column = wdg.cells_by_column;
+
+      // update active state of columns
+      for (i = 0, l = cells_by_column.length; i < l; i++) {
+        cells_by_column[i].is_active = (cells_by_column[i].$th.css('display') === 'table-cell');
+      }
+      // update all checkboxes
       wdg.$menu.$list.find('input').trigger('updateCheck');
     }
 
@@ -202,18 +210,24 @@
     }
 
     function _toggleColumn(event) {
-      $(event.target).data('cells')
-        .toggleClass('mediaTableCellShown', event.target.checked)
-        .toggleClass('mediaTableCellHidden', !event.target.checked);
+      var checkbox = event.target;
+      // NOTE: checkbox value is the same as column index from wdg.cells_by_column
+      var i_col = parseInt(checkbox.value, 10);
+
+      wdg.cells_by_column[i_col].$cells
+        .toggleClass('mediaTableCellShown', checkbox.checked)
+        .toggleClass('mediaTableCellHidden', !checkbox.checked);
+
+      // update active state in wdg
+      wdg.cells_by_column[i_col].is_active = checkbox.checked;
     }
 
     function _updateCheckbox(event) {
       var checkbox = event.target;
       // NOTE: checkbox value is the same as column index from wdg.cells_by_column
-      var i_col = checkbox.value;
+      var i_col = parseInt(checkbox.value, 10);
 
-      // we're using heading visibility as a proxy for the whole column's
-      checkbox.checked = (wdg.cells_by_column[i_col].$th.css('display') === 'table-cell');
+      checkbox.checked = wdg.cells_by_column[i_col].is_active;
     }
   }
 
