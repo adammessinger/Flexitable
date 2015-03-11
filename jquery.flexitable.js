@@ -86,9 +86,10 @@
     var $headers = wdg.$table.find('thead th');
     // cells_by_column: array of objects w/ each col's header txt and contained cells
     var cells_by_column = [];
-    // loop vars:
+    // the remaining are loop vars:
     var is_optional_col, is_essential_col, is_persistent_col;
-    var cell_num, $this_header, $col_cells, i, l;
+    var cell_num, $this_header, $col_cells;
+    var i_headers, l_headers, i_cells, l_cells;
 
     if (!$headers.length) {
       if (window.console && console.warn) {
@@ -97,18 +98,24 @@
       return;
     }
 
-    for (i = 0, l = $headers.length; i < l; i++) {
-      $this_header = $headers.eq(i);
+    for (i_headers = 0, l_headers = $headers.length; i_headers < l_headers; i_headers++) {
+      $this_header = $headers.eq(i_headers);
       is_persistent_col = $this_header.hasClass(persistent_class);
       is_essential_col = $this_header.hasClass(essential_class);
       is_optional_col = $this_header.hasClass(optional_class);
       // NOTE: cell_num is used for nth-child selectors, which aren't 0-indexed
-      cell_num = i + 1;
-      $col_cells = wdg.$table.find('thead th:nth-child('+cell_num+'), tbody td:nth-child('+cell_num+')');
+      cell_num = i_headers + 1;
+      $col_cells = wdg.$table.find('thead th:nth-child(' + cell_num + '), tbody td:nth-child(' + cell_num + ')');
 
-      $col_cells
-        .toggleClass(essential_class, is_essential_col)
-        .toggleClass(optional_class, is_optional_col);
+      // NOTE: using a loop here saved init time for huge tables vs. .toggleClass()
+      for (i_cells = 0, l_cells = $col_cells.length; i_cells < l_cells; i_cells++) {
+        $col_cells[i_cells].className += is_essential_col
+          ? (' ' + essential_class)
+          : '';
+        $col_cells[i_cells].className += is_optional_col
+          ? (' ' + optional_class)
+          : '';
+      }
 
       cells_by_column.push({
         heading_text: $this_header.text(),
@@ -195,7 +202,9 @@
     }
 
     function _toggleColumn(event) {
-      $(event.target).data('cells').toggleClass('mediaTableCellHidden', !event.target.checked);
+      $(event.target).data('cells')
+        .toggleClass('mediaTableCellShown', event.target.checked)
+        .toggleClass('mediaTableCellHidden', !event.target.checked);
     }
 
     function _updateCheckbox(event) {
