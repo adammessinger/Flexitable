@@ -212,6 +212,7 @@
       // NOTE: checkbox value is the same as column index from wdg.cells_by_column
       var i_col = checkbox.value;
 
+      // we're using heading visibility as a proxy for the whole column's
       checkbox.checked = (wdg.cells_by_column[i_col].$th.css('display') === 'table-cell');
     }
   }
