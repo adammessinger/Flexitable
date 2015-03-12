@@ -20,7 +20,6 @@
       var config = $.extend({
         has_menu: true,
         button_title: 'Columns:',
-        //t: 'e',
         destroy: false
       }, (user_config || {}));
 
