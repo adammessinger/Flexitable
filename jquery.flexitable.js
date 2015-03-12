@@ -65,8 +65,10 @@
     wdg.$table
       // class enables media queries, once above init gives proper classes to cells
       .addClass('activeMediaTable')
-      .before(wdg.$wrapper)
-      .appendTo(wdg.$wrapper);
+      .before(wdg.$wrapper);
+    // NOTE: using standard .appendChild() here because it saves 500-700ms in
+    // IE 11 vs. jQ .appendTo()
+    wdg.$wrapper[0].appendChild(wdg.$table[0]);
 
     // Menu initialization.
     // NOTE: MUST run after column init, not before
