@@ -11,9 +11,9 @@
  **/
 
 ;(function($) {
-  var persistent_class = 'persist';
-  var essential_class = 'essential';
-  var optional_class = 'optional';
+  var persistent_css_class = 'persist';
+  var essential_css_class = 'essential';
+  var optional_css_class = 'optional';
 
   $.fn.mediaTable = function(user_config) {    return this.each(function(i) {
       var $table = $(this);
@@ -60,13 +60,13 @@
       wdg.$table[0].id = wdg.id;
     }
 
-    wdg.$table.addClass('activeMediaTable');
-
-    // Place the wrapper near the table
-    wdg.$table.before(wdg.$wrapper);
-
     _initCellsByHeader(wdg);
-    wdg.$table.appendTo(wdg.$wrapper);
+
+    wdg.$table
+      // class enables media queries, once above init gives proper classes to cells
+      .addClass('activeMediaTable')
+      .before(wdg.$wrapper)
+      .appendTo(wdg.$wrapper);
 
     // Menu initialization.
     // NOTE: MUST run after column init, not before
@@ -90,16 +90,16 @@
 
     if (!$headers.length) {
       if (window.console && console.warn) {
-        console.warn('No headers in table#' + wdg.$table[0].id);
+        console.warn('No headers in table#' + wdg.id);
       }
       return;
     }
 
     for (i_headers = 0, l_headers = $headers.length; i_headers < l_headers; i_headers++) {
       $this_header = $headers.eq(i_headers);
-      is_persistent_col = $this_header.hasClass(persistent_class);
-      is_essential_col = $this_header.hasClass(essential_class);
-      is_optional_col = $this_header.hasClass(optional_class);
+      is_persistent_col = $this_header.hasClass(persistent_css_class);
+      is_essential_col = $this_header.hasClass(essential_css_class);
+      is_optional_col = $this_header.hasClass(optional_css_class);
       // NOTE: cell_num is used for nth-child selectors, which aren't 0-indexed
       cell_num = i_headers + 1;
       $col_cells = wdg.$table.find('thead th:nth-child(' + cell_num + '), tbody td:nth-child(' + cell_num + ')');
@@ -107,10 +107,10 @@
       // NOTE: using a loop here saved init time for huge tables vs. .toggleClass()
       for (i_cells = 0, l_cells = $col_cells.length; i_cells < l_cells; i_cells++) {
         $col_cells[i_cells].className += is_essential_col
-          ? (' ' + essential_class)
+          ? (' ' + essential_css_class)
           : '';
         $col_cells[i_cells].className += is_optional_col
-          ? (' ' + optional_class)
+          ? (' ' + optional_css_class)
           : '';
       }
 
