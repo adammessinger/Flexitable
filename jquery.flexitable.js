@@ -15,7 +15,8 @@
   var essential_css_class = 'essential';
   var optional_css_class = 'optional';
 
-  $.fn.mediaTable = function(user_config) {    return this.each(function(i) {
+  $.fn.flexitable = function(user_config) {
+    return this.each(function(i) {
       var $table = $(this);
       var config = $.extend({
         has_menu: true,
@@ -37,7 +38,7 @@
    */
   function _initFlexitable($table, config, i) {
     var view_model;
-    var existing_view_model = $table.data('MediaTable');
+    var existing_view_model = $table.data('Flexitable');
 
     // Prevent re-initialization
     if (!!existing_view_model && existing_view_model.$wrapper) {
@@ -51,7 +52,7 @@
       // cfg: this table's Flexitable config
       cfg: config,
       $table: $table,
-      $wrapper: $('<div class="mediaTableWrapper" />'),
+      $wrapper: $('<div class="flexitable-wrapper" />'),
       // $menu: will hold column toggle menu
       $menu: null,
       // cells_by_column: array of objects w/ each col's header txt & th,
@@ -61,7 +62,7 @@
 
     // Set table ID if not specified
     if (!view_model.id) {
-      view_model.id = 'MediaTable-' + i;
+      view_model.id = 'flexitable-' + i;
       view_model.$table[0].id = view_model.id;
     }
 
@@ -69,7 +70,7 @@
 
     view_model.$table
       // class enables media queries, once above init gives proper classes to cells
-      .addClass('activeMediaTable')
+      .addClass('flexitable-active')
       .before(view_model.$wrapper);
     // NOTE: using standard .appendChild() here because it saves 500-700ms in
     // IE 11 vs. jQ .appendTo()
@@ -82,7 +83,7 @@
     }
 
     // Save view model data on table
-    view_model.$table.data('MediaTable', view_model);
+    view_model.$table.data('Flexitable', view_model);
   }
 
 
@@ -139,7 +140,7 @@
     var i, l, $this_checkbox, $this_label;
 
     // Build menu containers
-    view_model.$menu = $('<div class="mediaTableMenu mediaTableMenuClosed" />');
+    view_model.$menu = $('<div class="flexitable-menu flexitable-menu-closed" />');
     view_model.$menu.$button = $('<button type="button" />').text(view_model.cfg.button_title);
     view_model.$menu.$list = $('<ul />');
     view_model.$menu
@@ -147,7 +148,7 @@
       .append(view_model.$menu.$list);
 
     // Add a class to the wrapper to inform about menu presence.
-    view_model.$wrapper.addClass('mediaTableWrapperWithMenu');
+    view_model.$wrapper.addClass('flexitable-has-menu');
 
     // populate menu with checkboxes for each non-persistent column
     for (i = 0, l = cells_by_column.length; i < l; i++) {
@@ -201,12 +202,12 @@
 
     function _closeMenuOnOutsideClick(event) {
       if (!view_model.$menu.find(event.target).length) {
-        view_model.$menu.addClass('mediaTableMenuClosed');
+        view_model.$menu.addClass('flexitable-menu-closed');
       }
     }
 
     function _toggleMenu() {
-      view_model.$menu.toggleClass('mediaTableMenuClosed');
+      view_model.$menu.toggleClass('flexitable-menu-closed');
     }
 
     function _toggleColumn(event) {
@@ -215,8 +216,8 @@
       var i_col = parseInt(checkbox.value, 10);
 
       view_model.cells_by_column[i_col].$cells
-        .toggleClass('mediaTableCellShown', checkbox.checked)
-        .toggleClass('mediaTableCellHidden', !checkbox.checked);
+        .toggleClass('flexitable-cell-shown', checkbox.checked)
+        .toggleClass('flexitable-cell-hidden', !checkbox.checked);
 
       // update active state in view_model
       view_model.cells_by_column[i_col].is_visible = checkbox.checked;
@@ -236,7 +237,7 @@
    * =Destroy Flexitable enhancement on passed table
    */
   function _destroyFlexitable($table) {
-    var view_model = $table.data('MediaTable');
+    var view_model = $table.data('Flexitable');
 
     if (!view_model) {
       return;
@@ -246,9 +247,9 @@
     view_model.$wrapper.after(view_model.$table).remove();
 
     // remove active class to nix Flexitable media queries
-    view_model.$table.removeClass('activeMediaTable');
+    view_model.$table.removeClass('flexitable-active');
 
     // remove stored view model data on the table
-    view_model.$table.data('MediaTable', null);
+    view_model.$table.data('Flexitable', null);
   }
 })(jQuery);

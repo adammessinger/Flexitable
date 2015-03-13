@@ -5,24 +5,20 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 /* =Structure
  ******************************************************************************/
 
-.mediaTable {
-	width:100%;
-}
-
-.mediaTableWrapper {
+.flexitable-wrapper {
 	position: relative;
 }
 
-.mediaTableWrapperWithMenu {
+.flexitable-has-menu {
 	padding-top:3em;
 }
 
-.mediaTableMenuClosed ul,
-.mediaTableCellHidden {
+.flexitable-menu-closed ul,
+.flexitable-cell-hidden {
 	display:none !important;
 }
 
-.mediaTableCellShown {
+.flexitable-cell-shown {
 	display: table-cell !important;
 }
 
@@ -30,12 +26,12 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 /* NOTE: All cells treated as "optional" by default (mobile first). Don't forget
    to apply "essential" class to headers where needed. */
 
-.activeMediaTable th,
-.activeMediaTable td {
+.flexitable-active th,
+.flexitable-active td {
 	display: none;
 }
-.activeMediaTable th.essential,
-.activeMediaTable td.essential {
+.flexitable-active th.essential,
+.flexitable-active td.essential {
 	display: table-cell;
 }
 
@@ -45,14 +41,15 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
  ******************************************************************************/
 
 @media screen and (min-width: 768px) {
-	.activeMediaTable th.optional,
-	.activeMediaTable td.optional {
+	.flexitable-active th.optional,
+	.flexitable-active td.optional {
 		display: table-cell;
 	}
 }
 
 @media screen and (min-width: 1024px) {
-	.activeMediaTable th, .activeMediaTable td {
+	.flexitable-active th,
+	.flexitable-active td {
 		display: table-cell;
 	}
 }
@@ -62,7 +59,7 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 /* =Menu
  ******************************************************************************/
 
-.mediaTableMenu {
+.flexitable-menu {
 	position:absolute;
 	top:0;
 	right:0;
@@ -74,7 +71,7 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 	box-shadow:2px 2px 4px #ddd;
 }
 
-.mediaTableMenu > ul {
+.flexitable-menu > ul {
 	clear: both;
 	margin: 0;
 	padding: 0.5em 2em 0.25em 0.5em;
@@ -84,16 +81,16 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 	background: #fff;
 	border: 1px solid #aaa;
 }
-.mediaTableMenu > ul:hover {
+.flexitable-menu > ul:hover {
 	overflow-y: auto;
 }
 
-.mediaTableMenu li {
+.flexitable-menu li {
 	margin: 0;
 	line-height: 2em;
 	white-space: nowrap;
 }
 
-.mediaTableMenu li label {
+.flexitable-menu li label {
 	cursor:pointer;
 }
