@@ -80,7 +80,7 @@
 
     // Menu initialization.
     // NOTE: MUST run after column init, not before
-    if (view_model.cfg.has_menu) {
+    if (view_model.cfg.has_menu && view_model.cells_by_column) {
       _buildMenu(view_model);
     }
 
