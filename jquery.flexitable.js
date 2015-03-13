@@ -51,7 +51,7 @@
       cells_by_column: []
     };
 
-    // public API methods
+    // public methods
     return {
       init: initFlexitable,
       destroy: destroyFlexitable
@@ -60,7 +60,7 @@
 
     function initFlexitable() {
       // Prevent re-initialization
-      if (view_model.$table.data('flexitable-init')) {
+      if (view_model.$table.data('Flexitable')) {
         return;
       }
 
@@ -87,23 +87,26 @@
         _buildMenu(view_model);
       }
 
-      view_model.$table.data('flexitable-init', true);
+      view_model.$table.data('Flexitable', {
+        $menu: view_model.$menu,
+        $wrapper: view_model.$wrapper
+      });
     }
 
 
     function destroyFlexitable() {
-      if (!view_model.$table.data('flexitable-init')) {
+      var flexitable_data = view_model.$table.data('Flexitable');
+
+      if (!flexitable_data) {
         return;
       }
 
-      view_model.$menu.remove();
-      view_model.$wrapper.after(view_model.$table).remove();
-
+      flexitable_data.$menu.remove();
+      flexitable_data.$wrapper.after(view_model.$table).remove();
       // remove active class to nix Flexitable media queries
       view_model.$table.removeClass('flexitable-active');
-
-      // remove stored view model data on the table
-      view_model.$table.removeData('flexitable-init');
+      // remove stored plugin data on the table
+      view_model.$table.removeData('Flexitable');
     }
 
 
@@ -217,7 +220,7 @@
 
     function _closeMenuOnOutsideClick(event) {
       if (!view_model.$menu.find(event.target).length) {
-        _toggleMenuVisibility();
+        view_model.$menu.addClass('flexitable-menu-closed');
       }
     }
 
