@@ -33,58 +33,62 @@
 
 
   /**
-   * Flexitable DOM Initialization
+   * =Initialization
    */
   function _initFlexitable($table, config, i) {
-    var wdg, existing_wdg = $table.data('MediaTable');
+    var view_model;
+    var existing_view_model = $table.data('MediaTable');
 
     // Prevent re-initialization
-    if (!!existing_wdg && existing_wdg.$wrapper) {
+    if (!!existing_view_model && existing_view_model.$wrapper) {
       return;
     }
 
-    // Build the widget context.
-    wdg = {
-      $table: $table,
-      $wrapper: $('<div class="mediaTableWrapper" />'),
-      // $menu: will hold column toggle menu container
-      $menu: null,
+    // view_model will contain all the data we need for future DOM manipulations.
+    // Much faster than revisiting the DOM repeatedly.
+    view_model = {
+      id: $table[0].id,
       // cfg: this table's Flexitable config
       cfg: config,
-      id: $table[0].id
+      $table: $table,
+      $wrapper: $('<div class="mediaTableWrapper" />'),
+      // $menu: will hold column toggle menu
+      $menu: null,
+      // cells_by_column: array of objects w/ each col's header txt & th,
+      // contained cells, and visibility & persistence states
+      cells_by_column: []
     };
 
     // Set table ID if not specified
-    if (!wdg.id) {
-      wdg.id = 'MediaTable-' + i;
-      wdg.$table[0].id = wdg.id;
+    if (!view_model.id) {
+      view_model.id = 'MediaTable-' + i;
+      view_model.$table[0].id = view_model.id;
     }
 
-    _initCellsByHeader(wdg);
+    _initCellsByHeader(view_model);
 
-    wdg.$table
+    view_model.$table
       // class enables media queries, once above init gives proper classes to cells
       .addClass('activeMediaTable')
-      .before(wdg.$wrapper);
+      .before(view_model.$wrapper);
     // NOTE: using standard .appendChild() here because it saves 500-700ms in
     // IE 11 vs. jQ .appendTo()
-    wdg.$wrapper[0].appendChild(wdg.$table[0]);
+    view_model.$wrapper[0].appendChild(view_model.$table[0]);
 
     // Menu initialization.
     // NOTE: MUST run after column init, not before
-    if (wdg.cfg.has_menu) {
-      _buildMenu(wdg);
+    if (view_model.cfg.has_menu) {
+      _buildMenu(view_model);
     }
 
-    // Save widget data on table
-    wdg.$table.data('MediaTable', wdg);
+    // Save view model data on table
+    view_model.$table.data('MediaTable', view_model);
   }
 
 
-  function _initCellsByHeader(wdg) {
-    var $headers = wdg.$table.find('thead th');
-    // cells_by_column: array of objects w/ each col's header txt and contained cells
-    var cells_by_column = [];
+  function _initCellsByHeader(view_model) {
+    var $headers = view_model.$table.find('thead th');
+    var cells_by_column = view_model.cells_by_column;
     // the remaining are loop vars:
     var is_optional_col, is_essential_col, is_persistent_col;
     var cell_num, $this_header, $col_cells;
@@ -92,7 +96,7 @@
 
     if (!$headers.length) {
       if (window.console && console.warn) {
-        console.warn('No headers in table#' + wdg.id);
+        console.warn('No headers in table#' + view_model.id);
       }
       return;
     }
@@ -104,7 +108,7 @@
       is_optional_col = $this_header.hasClass(optional_css_class);
       // NOTE: cell_num is used for nth-child selectors, which aren't 0-indexed
       cell_num = i_headers + 1;
-      $col_cells = wdg.$table.find('thead th:nth-child(' + cell_num + '), tbody td:nth-child(' + cell_num + ')');
+      $col_cells = view_model.$table.find('thead th:nth-child(' + cell_num + '), tbody td:nth-child(' + cell_num + ')');
 
       // NOTE: using a loop here saved init time for huge tables vs. .toggleClass()
       for (i_cells = 0, l_cells = $col_cells.length; i_cells < l_cells; i_cells++) {
@@ -118,7 +122,7 @@
 
       cells_by_column.push({
         // NOTE: we're using the th's visibility as a proxy for the column's
-        is_active: ($this_header.css('display') === 'table-cell'),
+        is_visible: ($this_header.css('display') === 'table-cell'),
         $th: $this_header,
         heading_text: $this_header.text(),
         is_persistent_col: is_persistent_col,
@@ -126,27 +130,24 @@
         $cells: is_persistent_col ? null : $col_cells
       });
     }
-
-    // store cell column info for use in menu init and elsewhere
-    wdg.cells_by_column = cells_by_column;
   }
 
 
-  function _buildMenu(wdg) {
-    var cells_by_column = wdg.cells_by_column;
+  function _buildMenu(view_model) {
+    var cells_by_column = view_model.cells_by_column;
     var li_cache = [];
     var i, l, $this_checkbox, $this_label;
 
     // Build menu containers
-    wdg.$menu = $('<div class="mediaTableMenu mediaTableMenuClosed" />');
-    wdg.$menu.$button = $('<button type="button" />').text(wdg.cfg.button_title);
-    wdg.$menu.$list = $('<ul />');
-    wdg.$menu
-      .append(wdg.$menu.$button)
-      .append(wdg.$menu.$list);
+    view_model.$menu = $('<div class="mediaTableMenu mediaTableMenuClosed" />');
+    view_model.$menu.$button = $('<button type="button" />').text(view_model.cfg.button_title);
+    view_model.$menu.$list = $('<ul />');
+    view_model.$menu
+      .append(view_model.$menu.$button)
+      .append(view_model.$menu.$list);
 
     // Add a class to the wrapper to inform about menu presence.
-    wdg.$wrapper.addClass('mediaTableWrapperWithMenu');
+    view_model.$wrapper.addClass('mediaTableWrapperWithMenu');
 
     // populate menu with checkboxes for each non-persistent column
     for (i = 0, l = cells_by_column.length; i < l; i++) {
@@ -157,7 +158,7 @@
           id: 'toggle-col-'+i,
           value: i
         });
-      $this_checkbox.prop('checked', cells_by_column[i].is_active);
+      $this_checkbox.prop('checked', cells_by_column[i].is_visible);
 
         $this_label = $('<label />', {
           for: 'toggle-col-'+i,
@@ -168,87 +169,86 @@
       }
     }
 
-    wdg.$menu.$list.append(li_cache);
-    wdg.$menu.prependTo(wdg.$wrapper);
+    view_model.$menu.$list.append(li_cache);
+    view_model.$menu.prependTo(view_model.$wrapper);
 
-    _initMenuInteractions(wdg);
+    _initMenuInteractions(view_model);
   }
 
 
-  function _initMenuInteractions(wdg) {
+  function _initMenuInteractions(view_model) {
     // Update checkbox status on viewport changes.
-    $(window).on('orientationchange resize', _updateMenu);
+    $(window).on('orientationchange resize', _updateMenuOnViewportChange);
     // Close menu when user clicks outside the menu.
     $(document).on('click', _closeMenuOnOutsideClick);
-    wdg.$menu
+    view_model.$menu
       .on('click', 'button', _toggleMenu)
       .on('change', 'input[name="toggle-cols"]', _toggleColumn)
       .on('updateCheck', 'input[name="toggle-cols"]', _updateCheckbox);
 
 
-    // TODO: debounce this
-    function _updateMenu() {
-      var i, l, cells_by_column = wdg.cells_by_column;
+    // TODO: throttle this
+    function _updateMenuOnViewportChange() {
+      var i, l, cells_by_column = view_model.cells_by_column;
 
       // update active state of columns
       for (i = 0, l = cells_by_column.length; i < l; i++) {
-        cells_by_column[i].is_active = (cells_by_column[i].$th.css('display') === 'table-cell');
+        cells_by_column[i].is_visible = (cells_by_column[i].$th.css('display') === 'table-cell');
       }
       // update all checkboxes
-      wdg.$menu.$list.find('input').trigger('updateCheck');
+      view_model.$menu.$list.find('input').trigger('updateCheck');
     }
 
     function _closeMenuOnOutsideClick(event) {
-      if (!wdg.$menu.find(event.target).length) {
-        wdg.$menu.addClass('mediaTableMenuClosed');
+      if (!view_model.$menu.find(event.target).length) {
+        view_model.$menu.addClass('mediaTableMenuClosed');
       }
     }
 
     function _toggleMenu() {
-      wdg.$menu.toggleClass('mediaTableMenuClosed');
+      view_model.$menu.toggleClass('mediaTableMenuClosed');
     }
 
     function _toggleColumn(event) {
       var checkbox = event.target;
-      // NOTE: checkbox value is the same as column index from wdg.cells_by_column
+      // NOTE: checkbox value is the same as column index from view_model.cells_by_column
       var i_col = parseInt(checkbox.value, 10);
 
-      wdg.cells_by_column[i_col].$cells
+      view_model.cells_by_column[i_col].$cells
         .toggleClass('mediaTableCellShown', checkbox.checked)
         .toggleClass('mediaTableCellHidden', !checkbox.checked);
 
-      // update active state in wdg
-      wdg.cells_by_column[i_col].is_active = checkbox.checked;
+      // update active state in view_model
+      view_model.cells_by_column[i_col].is_visible = checkbox.checked;
     }
 
     function _updateCheckbox(event) {
       var checkbox = event.target;
-      // NOTE: checkbox value is the same as column index from wdg.cells_by_column
+      // NOTE: checkbox value is the same as column index from view_model.cells_by_column
       var i_col = parseInt(checkbox.value, 10);
 
-      checkbox.checked = wdg.cells_by_column[i_col].is_active;
+      checkbox.checked = view_model.cells_by_column[i_col].is_visible;
     }
   }
 
 
   /**
-   * Flexitable Widget Destruction
+   * =Destroy Flexitable enhancement on passed table
    */
   function _destroyFlexitable($table) {
-    // Get the widget context.
-    var wdg = $table.data('MediaTable');
+    var view_model = $table.data('MediaTable');
 
-    if (!wdg) {
+    if (!view_model) {
       return;
     }
 
-    // Remove the wrapper from the table.
-    wdg.$wrapper.after(wdg.$table).remove();
+    view_model.$menu.remove();
+    view_model.$wrapper.after(view_model.$table).remove();
 
-    // Remove Flexitable active class so media-query will not work.
-    wdg.$table.removeClass('activeMediaTable');
+    // remove active class to nix Flexitable media queries
+    view_model.$table.removeClass('activeMediaTable');
 
-    // Remove DOM reference to the widget context.
-    wdg.$table.data('MediaTable', null);
+    // remove stored view model data on the table
+    view_model.$table.data('MediaTable', null);
   }
 })(jQuery);
