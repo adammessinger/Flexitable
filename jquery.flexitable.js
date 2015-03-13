@@ -11,6 +11,8 @@
  **/
 
 ;(function($) {
+  'use strict';
+
   var persistent_css_class = 'persist';
   var essential_css_class = 'essential';
   var optional_css_class = 'optional';
