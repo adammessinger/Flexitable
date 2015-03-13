@@ -23,7 +23,7 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 }
 
 /*-- Active table rules set baseline visibility for those w/o media query support --*/
-/* NOTE: All cells treated as "optional" by default (mobile first). Don't forget
+/* NOTE: Non-essential cells hidden by default (mobile first), so don't forget
    to apply "essential" class to headers where needed. */
 
 .flexitable-active th,
