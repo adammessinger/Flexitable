@@ -32,6 +32,95 @@
   };
 
 
+  /*$.yieldingEach = function(object, callback, onFinished) {
+    var i = 0;
+    var length = object.length;
+    var isObj = (length === undefined) || $.isFunction(object);
+    var onFinished = onFinished || function() {};
+    var keys = [];
+    var next, key;
+
+    if (isObj) {
+      for (key in object) {
+        keys.push(key);
+      }
+
+      next = function() {
+        if (i < keys.length && callback.call(object[keys[i]], keys[i], object[keys[i++]]) !== false) {
+          setTimeout(next, 1);
+        } else {
+          onFinished();
+        }
+      };
+      next();
+    } else {
+      next = function() {
+        if (i < length && callback.call(object[i], i, object[i++]) !== false) {
+          setTimeout(next, 1);
+        } else {
+          onFinished();
+        }
+      };
+      next();
+    }
+  };*/
+  /* "deferredEach" based on "yieldingEach" by Colin Marc (http://colinmarc.com/),
+   * the source for jQuery.each() and this StackOverflow answer: http://stackoverflow.com/a/20688889 */
+  $.fn.deferredEach = function(collection, callback) {
+    var i = 0;
+    var length = collection.length;
+    var is_array = _isArraylike(collection);
+    var promises= [];
+    var master_deferred = new $.Deferred();
+    var keys = [];
+    var next, key;
+
+    if (is_array) {
+      next = function() {
+        var deferred_i = new $.Deferred();
+        if (i < length && callback.call(collection[i], i, collection[i++]) !== false) {
+          setTimeout(next, 1);
+        }
+        deferred_i.resolve(i);
+        promises.push(deferred_i);
+        master_deferred.notify(i / length);
+      };
+      next();
+    } else {
+      for (key in collection) { keys.push(key); }
+      next = function() {
+        var deferred_i = new $.Deferred();
+        if (i < keys.length && callback.call(collection[keys[i]], keys[i], collection[keys[i++]]) !== false) {
+          setTimeout(next, 1);
+        }
+        deferred_i.resolve(i);
+        promises.push(deferred_i);
+        master_deferred.notify(i / keys.length);
+      };
+      next();
+    }
+
+    $.when.apply(undefined, promises).then(function() {
+      master_deferred.resolve(collection);
+    });
+    return master_deferred.promise();
+
+    function _isArraylike(obj) {
+      var length = obj.length;
+      var type = $.type(obj);
+
+      if (type === "function" || $.isWindow(obj)) {
+        return false;
+      }
+      if (obj.nodeType === 1 && length) {
+        return true;
+      }
+      return type === "array" || length === 0 ||
+             (typeof length === "number" && length > 0 && (length - 1) in obj);
+    }
+  };
+
+
   function columnChooser($table, config, i) {
     var persistent_css_class = 'persist';
     var essential_css_class = 'essential';
