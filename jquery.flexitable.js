@@ -3,14 +3,13 @@
  Copyright (c) 2015 Adam Messinger, http://zenscope.com/
  Released under the MIT license, see LICENSE file for details.
 
- This plugin owes its starting point to the work of:
-   Marco Pegoraro, http://movableapp.com/: https://github.com/marcopeg/MediaTable
-   Nick Burwell, http://nickburwell.com: https://github.com/nburwell/ResponsiveTable
+ This plugin owes its starting point to the work of Marco Pegoraro (movableapp.com):
+   https://github.com/marcopeg/MediaTable
  ...and also borrows some ideas from Tablesaw by Filament Group:
    https://github.com/filamentgroup/tablesaw
  **/
 
-;(function($) {
+;(function($, undefined) {
   'use strict';
 
   $.fn.flexitable = function(user_config) {
@@ -32,78 +31,63 @@
   };
 
 
-  /*$.yieldingEach = function(object, callback, onFinished) {
-    var i = 0;
-    var length = object.length;
-    var isObj = (length === undefined) || $.isFunction(object);
-    var onFinished = onFinished || function() {};
-    var keys = [];
-    var next, key;
+  /* "deferredEach" based on "yieldingEach" by Colin Marc (http://colinmarc.com/)
+   * and the source for jQuery.each() */
+  (function($, undefined) {
+    'use strict';
 
-    if (isObj) {
-      for (key in object) {
-        keys.push(key);
+    $.deferredEach = function(collection, callback) {
+      var i = 0;
+      var length = collection.length;
+      var is_array = _isArraylike(collection);
+      var parent_deferred = new $.Deferred();
+      var child_deferreds;
+      var keys = [];
+      var next, key;
+
+      if (is_array) {
+        child_deferreds = _makeChildDeferredsArray(length);
+
+        next = function() {
+          if (i < length && callback.call(collection[i], i, collection[i++]) !== false) {
+            setTimeout(next, 1);
+          }
+          child_deferreds[i - 1].resolve();
+          parent_deferred.notify(i / length);
+        };
+        next();
+      } else {
+        for (key in collection) {
+          keys.push(key);
+        }
+        child_deferreds = _makeChildDeferredsArray(keys.length);
+
+        next = function() {
+          if (i < keys.length && callback.call(collection[keys[i]], keys[i], collection[keys[i++]]) !== false) {
+            setTimeout(next, 1);
+          }
+          child_deferreds[i - 1].resolve();
+          parent_deferred.notify(i / keys.length);
+        };
+        next();
       }
 
-      next = function() {
-        if (i < keys.length && callback.call(object[keys[i]], keys[i], object[keys[i++]]) !== false) {
-          setTimeout(next, 1);
-        } else {
-          onFinished();
-        }
-      };
-      next();
-    } else {
-      next = function() {
-        if (i < length && callback.call(object[i], i, object[i++]) !== false) {
-          setTimeout(next, 1);
-        } else {
-          onFinished();
-        }
-      };
-      next();
-    }
-  };*/
-  /* "deferredEach" based on "yieldingEach" by Colin Marc (http://colinmarc.com/),
-   * the source for jQuery.each() and this StackOverflow answer: http://stackoverflow.com/a/20688889 */
-  $.fn.deferredEach = function(collection, callback) {
-    var i = 0;
-    var length = collection.length;
-    var is_array = _isArraylike(collection);
-    var promises= [];
-    var master_deferred = new $.Deferred();
-    var keys = [];
-    var next, key;
+      $.when.apply(undefined, child_deferreds).then(function() {
+        parent_deferred.notify(1);
+        parent_deferred.resolve(collection);
+      });
+      return parent_deferred.promise();
+    };
 
-    if (is_array) {
-      next = function() {
-        var deferred_i = new $.Deferred();
-        if (i < length && callback.call(collection[i], i, collection[i++]) !== false) {
-          setTimeout(next, 1);
-        }
-        deferred_i.resolve(i);
-        promises.push(deferred_i);
-        master_deferred.notify(i / length);
-      };
-      next();
-    } else {
-      for (key in collection) { keys.push(key); }
-      next = function() {
-        var deferred_i = new $.Deferred();
-        if (i < keys.length && callback.call(collection[keys[i]], keys[i], collection[keys[i++]]) !== false) {
-          setTimeout(next, 1);
-        }
-        deferred_i.resolve(i);
-        promises.push(deferred_i);
-        master_deferred.notify(i / keys.length);
-      };
-      next();
-    }
+    function _makeChildDeferredsArray(length) {
+      var i = 0;
+      var array = [];
 
-    $.when.apply(undefined, promises).then(function() {
-      master_deferred.resolve(collection);
-    });
-    return master_deferred.promise();
+      for (; i < length; i++) {
+        array.push(new $.Deferred());
+      }
+      return array;
+    }
 
     function _isArraylike(obj) {
       var length = obj.length;
@@ -118,7 +102,7 @@
       return type === "array" || length === 0 ||
              (typeof length === "number" && length > 0 && (length - 1) in obj);
     }
-  };
+  })(jQuery);
 
 
   function columnChooser($table, config, i) {
