@@ -132,6 +132,8 @@
 
 
     function initFlexitable() {
+      var $headers;
+
       // Prevent re-initialization
       if (view_model.$table.data('Flexitable')) {
         return;
@@ -143,27 +145,31 @@
         view_model.$table[0].id = view_model.id;
       }
 
-      _initCellsByHeader(view_model);
+      $headers = view_model.$table.find('thead th');
+      if ($headers.length) {
+        $.deferredEach($headers, _initCellsByHeader)
+          .done(function() {
+            // 'flexitable-active' class enables media queries, once above init gives
+            // proper classes to cells
+            view_model.$table
+              .addClass('flexitable-active')
+              .before(view_model.$wrapper);
 
-      // 'flexitable-active' class enables media queries, once above init gives
-      // proper classes to cells
-      view_model.$table
-        .addClass('flexitable-active')
-        .before(view_model.$wrapper);
+            // NOTE: using standard .appendChild() here because it saves 500-700ms in
+            // IE 11 vs. jQ .appendTo()
+            view_model.$wrapper[0].appendChild(view_model.$table[0]);
 
-      // NOTE: using standard .appendChild() here because it saves 500-700ms in
-      // IE 11 vs. jQ .appendTo()
-      view_model.$wrapper[0].appendChild(view_model.$table[0]);
+            // NOTE: MUST build menu after _initCellsByHeader, not before
+            if (view_model.cfg.has_menu && view_model.cells_by_column) {
+              _buildMenu(view_model);
+            }
 
-      // NOTE: MUST build menu after _initCellsByHeader, not before
-      if (view_model.cfg.has_menu && view_model.cells_by_column) {
-        _buildMenu(view_model);
+            view_model.$table.data('Flexitable', {
+              $menu: view_model.$menu,
+              $wrapper: view_model.$wrapper
+            });
+          });
       }
-
-      view_model.$table.data('Flexitable', {
-        $menu: view_model.$menu,
-        $wrapper: view_model.$wrapper
-      });
     }
 
 
@@ -183,50 +189,36 @@
     }
 
 
-    function _initCellsByHeader() {
-      var $headers = view_model.$table.find('thead th');
+    function _initCellsByHeader(i, $header) {
       var cells_by_column = view_model.cells_by_column;
-      // the remaining are loop vars:
-      var is_optional_col, is_essential_col, is_persistent_col;
-      var cell_num, $this_header, $col_cells;
-      var i_headers, l_headers, i_cells, l_cells;
+      var is_optional_col = $header.hasClass(optional_css_class);
+      var is_essential_col = $header.hasClass(essential_css_class);
+      var is_persistent_col = $header.hasClass(persistent_css_class);
+      // NOTE: cell_num is used for nth-child selectors, which aren't 0-indexed
+      var cell_num = i + 1;
+      var $col_cells = view_model.$table.find('thead th:nth-child(' + cell_num + '), tbody td:nth-child(' + cell_num + ')');
+      // cell loop vars:
+      var i_cells, l_cells;
 
-      if (!$headers.length) {
-        if (window.console && console.warn) {
-          console.warn('No headers in table#' + view_model.id);
-        }
-        return;
+      // NOTE: using a loop here saved init time for huge tables vs. .toggleClass()
+      for (i_cells = 0, l_cells = $col_cells.length; i_cells < l_cells; i_cells++) {
+        $col_cells[i_cells].className += is_essential_col
+          ? (' ' + essential_css_class)
+          : '';
+        $col_cells[i_cells].className += is_optional_col
+          ? (' ' + optional_css_class)
+          : '';
       }
 
-      for (i_headers = 0, l_headers = $headers.length; i_headers < l_headers; i_headers++) {
-        $this_header = $headers.eq(i_headers);
-        is_persistent_col = $this_header.hasClass(persistent_css_class);
-        is_essential_col = $this_header.hasClass(essential_css_class);
-        is_optional_col = $this_header.hasClass(optional_css_class);
-        // NOTE: cell_num is used for nth-child selectors, which aren't 0-indexed
-        cell_num = i_headers + 1;
-        $col_cells = view_model.$table.find('thead th:nth-child(' + cell_num + '), tbody td:nth-child(' + cell_num + ')');
-
-        // NOTE: using a loop here saved init time for huge tables vs. .toggleClass()
-        for (i_cells = 0, l_cells = $col_cells.length; i_cells < l_cells; i_cells++) {
-          $col_cells[i_cells].className += is_essential_col
-            ? (' ' + essential_css_class)
-            : '';
-          $col_cells[i_cells].className += is_optional_col
-            ? (' ' + optional_css_class)
-            : '';
-        }
-
-        cells_by_column.push({
-          // NOTE: we're using the th's visibility as a proxy for the column's
-          is_visible: ($this_header.css('display') === 'table-cell'),
-          $th: $this_header,
-          heading_text: $this_header.text(),
-          is_persistent_col: is_persistent_col,
-          // NOTE: no need to store cells for persistent columns, so we don't to save memory
-          $cells: is_persistent_col ? null : $col_cells
-        });
-      }
+      cells_by_column.push({
+        // NOTE: we're using the th's visibility as a proxy for the column's
+        is_visible: ($header.css('display') === 'table-cell'),
+        $th: $header,
+        heading_text: $header.text(),
+        is_persistent_col: is_persistent_col,
+        // NOTE: no need to store cells for persistent columns, so we don't to save memory
+        $cells: is_persistent_col ? null : $col_cells
+      });
     }
 
 
