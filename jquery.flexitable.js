@@ -189,7 +189,8 @@
     }
 
 
-    function _initCellsByHeader(i, $header) {
+    function _initCellsByHeader(i, header) {
+      var $header = $(header);
       var cells_by_column = view_model.cells_by_column;
       var is_optional_col = $header.hasClass(optional_css_class);
       var is_essential_col = $header.hasClass(essential_css_class);
