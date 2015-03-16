@@ -31,8 +31,8 @@
   };
 
 
-  /* "deferredEach" based on "yieldingEach" by Colin Marc (http://colinmarc.com/)
-   * and the source for jQuery.each() */
+  /* jQuery.deferredEach docs and info:
+   * https://github.com/adammessinger/jQuery.deferredEach */
   (function($, undefined) {
     'use strict';
 
