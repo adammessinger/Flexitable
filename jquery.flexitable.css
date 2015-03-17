@@ -65,10 +65,11 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 	right:0;
 	z-index: 99;
 	background: #fff;
-	border:1px solid #aaa;
-	border-radius:5px;
 	overflow:hidden;
-	box-shadow:2px 2px 4px #ddd;
+}
+
+.flexitable-menu > button {
+	float: right;
 }
 
 .flexitable-menu > ul {
