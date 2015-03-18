@@ -151,7 +151,7 @@
         view_model.$table[0].id = view_model.id;
       }
 
-      $headers = view_model.$table.find('thead th');
+      $headers = view_model.$table.find('> thead th');
       if ($headers.length) {
         $.deferredEach($headers, _initCellsByHeader)
           .done(function() {
