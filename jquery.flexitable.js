@@ -168,6 +168,8 @@
               $menu: view_model.$menu,
               $wrapper: view_model.$wrapper
             });
+
+            view_model.$table.trigger('flexitable.initialized');
           });
       }
     }
