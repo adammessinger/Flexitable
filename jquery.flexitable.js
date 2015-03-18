@@ -227,6 +227,7 @@
 
     function _buildMenu() {
       var cells_by_column = view_model.cells_by_column;
+      var checkbox_id_pfx = (view_model.id + '_toggle-col-');
       var li_cache = [];
       var i, l, $this_checkbox, $this_label;
 
@@ -247,13 +248,14 @@
           $this_checkbox = $('<input />', {
             type: 'checkbox',
             name: 'toggle-cols',
-            id: 'toggle-col-'+i,
-            value: i
+            id: (checkbox_id_pfx + i),
+            value: i,
+            'data-flexitable-id': view_model.id
           });
           $this_checkbox.prop('checked', cells_by_column[i].is_visible);
 
           $this_label = $('<label />', {
-            for: 'toggle-col-'+i,
+            for: (checkbox_id_pfx + i),
             text: cells_by_column[i].heading_text
           });
 
