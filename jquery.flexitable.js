@@ -7,6 +7,12 @@
    https://github.com/marcopeg/MediaTable
  ...and also borrows some ideas from Tablesaw by Filament Group:
    https://github.com/filamentgroup/tablesaw
+
+ TODO: Remove wrapper div placed around table (this DOM manip is slow for large tables). Instead, place "toolbar" div around menu to provide the style hooks the table wrapper currently gives for padding, etc. This toolbar will be where search lives in the future.
+
+ TODO: Drop column toggle menu into page above table first, with config options for placement. If user clicks menu button before init is complete, the drop-down will display a progress meter until this is hidden and checkbox list populated.
+
+ TODO: table search/filter
  **/
 
 ;(function($, undefined) {
