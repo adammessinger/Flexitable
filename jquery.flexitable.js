@@ -8,9 +8,9 @@
  ...and also borrows some ideas from Tablesaw by Filament Group:
    https://github.com/filamentgroup/tablesaw
 
- TODO: throttle _updateCheckboxesOnViewportChange so it doesn't run every single time "resize" fires
-
  TODO: Drop column toggle menu into page above table first. If user clicks menu button before init is complete, the drop-down will display a progress meter until this is hidden and checkbox list populated.
+
+ TODO: Init column toggling only once column button is clicked? Wouldn't make much difference for small tables, and would save needless high processor usage on large tables.
 
  TODO: table search/filter
  **/
@@ -157,6 +157,36 @@
     }
 
 
+    // debounce: from https://github.com/twitter/typeahead.js & http://davidwalsh.name/function-debounce
+    // Returns a function, that, as long as it continues to be invoked, will not
+    // be triggered. The function will be called after it stops being called for
+    // N milliseconds. If 'immediate' is passed, trigger the function on the
+    // leading edge instead of the trailing.
+    function debounce(func, wait, immediate) {
+      var timeout;
+      var result;
+
+      return function() {
+        var context = this;
+        var args = arguments;
+        var later = function() {
+          timeout = null;
+          if (!immediate) {
+            result = func.apply(context, args);
+          }
+        };
+        var callNow = immediate && !timeout;
+
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) {
+          result = func.apply(context, args);
+        }
+        return result;
+      };
+    }
+
+
     function _buildMenu() {
       var cells_by_column = view_model.cells_by_column;
       var checkbox_id_pfx = (view_model.id + '_toggle-col-');
@@ -219,7 +249,7 @@
         .on('updateCheck', 'input[name="toggle-cols"]', _updateMenuCheckbox);
 
       // Update checkbox status on viewport changes.
-      $(window).on('orientationchange resize', _updateCheckboxesOnViewportChange);
+      $(window).on('orientationchange resize', debounce(_updateCheckboxesOnViewportChange, 500));
 
       // Close menu when user clicks anywhere outside the menu.
       $(document).on('click', _closeMenuOnOutsideClick);
