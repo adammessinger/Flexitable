@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<meta charset="UTF-8">
+	<title>Flexitable Multi-Table Test</title>
+	<link rel="stylesheet" href="../jquery.flexitable.css" />
+	<style>
+		body {
+			font-family: sans-serif;
+		}
+		h1 {
+			font-weight: normal;
+		}
+		table {
+			border-collapse: collapse;
+		}
+		thead, tfoot {
+			background: silver;
+		}
+		th, td {
+			white-space: nowrap;
+			border: 1px solid gray;
+			padding: 0.5em;
+		}
+		td:nth-child(3) {
+			white-space: normal;
+			min-width: 20em;
+		}
+	</style>
+</head>
+<body>
+
+<h1>Flexitable Multi-Table Test</h1>
+
+<table>
+	<thead>
+		<tr>
+			<th scope="col" class="persist essential">Catalog #</th>
+			<th scope="col" class="essential">Starting Bid</th>
+			<th scope="col" class="essential">Raise</th>
+			<th scope="col" class="essential">Win it Now Price</th>
+			<th scope="col" class="essential">Quantity</th>
+			<th scope="col" class="essential">Price</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>0001</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0002</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0003</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0004</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0005</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0006</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0007</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0008</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0009</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0010</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+	</tbody>
+</table>
+
+<table>
+	<thead>
+		<tr>
+			<th scope="col" class="persist essential">Catalog #</th>
+			<th scope="col" class="essential">Starting Bid</th>
+			<th scope="col" class="essential">Raise</th>
+			<th scope="col" class="essential">Win it Now Price</th>
+			<th scope="col" class="essential">Quantity</th>
+			<th scope="col" class="essential">Price</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>0001</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0002</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0003</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0004</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0005</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0006</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0007</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0008</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0009</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0010</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+	</tbody>
+</table>
+
+<table>
+	<thead>
+		<tr>
+			<th scope="col" class="persist essential">Catalog #</th>
+			<th scope="col" class="essential">Starting Bid</th>
+			<th scope="col" class="essential">Raise</th>
+			<th scope="col" class="essential">Win it Now Price</th>
+			<th scope="col" class="essential">Quantity</th>
+			<th scope="col" class="essential">Price</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>0001</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0002</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0003</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0004</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0005</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0006</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0007</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0008</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0009</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+		<tr>
+			<td>0010</td>
+			<td>$15.00</td>
+			<td>$3.00</td>
+			<td>$50.00</td>
+			<td>1</td>
+			<td>$40.00</td>
+		</tr>
+	</tbody>
+</table>
+
+	<script src="jquery-1.11.2.js"></script>
+	<script src="../jquery.flexitable.js"></script>
+	<script>$('table').flexitable();</script>
+</body>
+</html>
