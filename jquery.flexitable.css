@@ -5,12 +5,9 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 /* =Structure
  ******************************************************************************/
 
-.flexitable-wrapper {
+.flexitable-toolbar-has-widgets {
 	position: relative;
-}
-
-.flexitable-has-menu {
-	padding-top:3em;
+	padding-bottom:3em;
 }
 
 .flexitable-menu-closed ul,

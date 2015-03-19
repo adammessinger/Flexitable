@@ -8,8 +8,6 @@
  ...and also borrows some ideas from Tablesaw by Filament Group:
    https://github.com/filamentgroup/tablesaw
 
- TODO: Remove wrapper div placed around table (this DOM manip is slow for large tables). Instead, place "toolbar" div around menu to provide the style hooks the table wrapper currently gives for padding, etc. This toolbar will be where search lives in the future.
-
  TODO: Drop column toggle menu into page above table first, with config options for placement. If user clicks menu button before init is complete, the drop-down will display a progress meter until this is hidden and checkbox list populated.
 
  TODO: throttle _updateCheckboxesOnViewportChange so it doesn't run every single time "resize" fires
@@ -50,7 +48,7 @@
       // cfg: this table's Flexitable config
       cfg: config,
       $table: $table,
-      $wrapper: $('<div class="flexitable-wrapper" />'),
+      $toolbar: $('<div class="flexitable-toolbar" />'),
       // $menu: will hold column toggle menu
       $menu: null,
       // cells_by_column: array of objects w/ each col's header txt & th,
@@ -86,13 +84,7 @@
           .done(function() {
             // 'flexitable-active' class enables media queries, once above init gives
             // proper classes to cells
-            view_model.$table
-              .addClass('flexitable-active')
-              .before(view_model.$wrapper);
-
-            // NOTE: using standard .appendChild() here because it saves 500-700ms in
-            // IE 11 vs. jQ .appendTo()
-            view_model.$wrapper[0].appendChild(view_model.$table[0]);
+            view_model.$table.addClass('flexitable-active');
 
             // NOTE: MUST build menu after _initCellsByHeader, not before
             if (view_model.cfg.has_menu && view_model.cells_by_column) {
@@ -101,7 +93,7 @@
 
             view_model.$table.data('Flexitable', {
               $menu: view_model.$menu,
-              $wrapper: view_model.$wrapper
+              $toolbar: view_model.$toolbar
             });
 
             view_model.$table.trigger('flexitable.initialized');
@@ -118,7 +110,7 @@
       }
 
       flexitable_data.$menu.remove();
-      flexitable_data.$wrapper.after(view_model.$table).remove();
+      flexitable_data.$toolbar.remove();
       // remove active class to nix Flexitable media queries
       view_model.$table.removeClass('flexitable-active');
       // remove stored plugin data on the table
@@ -174,9 +166,6 @@
         .append(view_model.$menu.$button)
         .append(view_model.$menu.$list);
 
-      // Add a class to the wrapper to inform about menu presence.
-      view_model.$wrapper.addClass('flexitable-has-menu');
-
       // populate menu with checkboxes for each non-persistent column
       for (i = 0, l = cells_by_column.length; i < l; i++) {
         if (!cells_by_column[i].is_persistent_col) {
@@ -199,7 +188,11 @@
       }
 
       view_model.$menu.$list.append(li_cache);
-      view_model.$menu.prependTo(view_model.$wrapper);
+      view_model.$toolbar
+        .append(view_model.$menu)
+        // Add a class to the toolbar to inform about menu presence.
+        .addClass('flexitable-toolbar-has-widgets')
+        .insertBefore(view_model.$table);
       _initMenuInteractions(view_model);
     }
 
