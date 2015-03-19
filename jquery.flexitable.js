@@ -12,6 +12,8 @@
 
  TODO: Drop column toggle menu into page above table first, with config options for placement. If user clicks menu button before init is complete, the drop-down will display a progress meter until this is hidden and checkbox list populated.
 
+ TODO: throttle _updateCheckboxesOnViewportChange so it doesn't run every single time "resize" fires
+
  TODO: table search/filter
  **/
 
@@ -252,7 +254,6 @@
 
 
     function _updateCheckboxesOnViewportChange() {
-      // TODO: throttle this
       var i, l, cells_by_column = view_model.cells_by_column;
 
       // update active state of columns
