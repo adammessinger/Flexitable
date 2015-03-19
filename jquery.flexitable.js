@@ -8,8 +8,6 @@
  ...and also borrows some ideas from Tablesaw by Filament Group:
    https://github.com/filamentgroup/tablesaw
 
- TODO: User config options for toolbar placement.
-
  TODO: throttle _updateCheckboxesOnViewportChange so it doesn't run every single time "resize" fires
 
  TODO: Drop column toggle menu into page above table first. If user clicks menu button before init is complete, the drop-down will display a progress meter until this is hidden and checkbox list populated.
@@ -27,6 +25,9 @@
         column_toggle: true,
         has_column_menu: true,
         column_button_txt: 'Columns:',
+        // NOTE: takes a CSS selector; 'this' means position relative to the enhanced table
+        toolbar_position_target: 'this',
+        toolbar_before_or_after: 'before',
         destroy: false
       }, (user_config || {}));
 
@@ -90,7 +91,9 @@
 
             // NOTE: MUST build menu after _initCellsByHeader, not before
             if (view_model.cfg.has_column_menu && view_model.cells_by_column) {
-              _buildMenu(view_model);
+              _buildMenu();
+              _initMenuInteractions();
+              _insertMenu();
             }
 
             view_model.$table.data('Flexitable', {
@@ -190,12 +193,22 @@
       }
 
       view_model.$menu.$list.append(li_cache);
+    }
+
+
+    function _insertMenu() {
+      var placement_target = view_model.cfg.toolbar_position_target === 'this'
+        ? view_model.$table
+        : $(view_model.cfg.toolbar_position_target);
+      var placement_method = view_model.cfg.toolbar_before_or_after.toLowerCase() === 'after'
+        ? 'insertAfter'
+        : 'insertBefore';
+
       view_model.$toolbar
         .append(view_model.$menu)
         // Add a class to the toolbar to inform about menu presence.
         .addClass('flexitable-toolbar-has-widgets')
-        .insertBefore(view_model.$table);
-      _initMenuInteractions(view_model);
+        [placement_method](placement_target);
     }
 
 
