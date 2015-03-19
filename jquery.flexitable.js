@@ -8,9 +8,11 @@
  ...and also borrows some ideas from Tablesaw by Filament Group:
    https://github.com/filamentgroup/tablesaw
 
- TODO: Drop column toggle menu into page above table first, with config options for placement. If user clicks menu button before init is complete, the drop-down will display a progress meter until this is hidden and checkbox list populated.
+ TODO: User config options for toolbar placement.
 
  TODO: throttle _updateCheckboxesOnViewportChange so it doesn't run every single time "resize" fires
+
+ TODO: Drop column toggle menu into page above table first. If user clicks menu button before init is complete, the drop-down will display a progress meter until this is hidden and checkbox list populated.
 
  TODO: table search/filter
  **/
