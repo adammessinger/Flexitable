@@ -24,22 +24,22 @@
     return this.each(function(i) {
       var $table = $(this);
       var config = $.extend({
-        has_menu: true,
-        button_title: 'Columns:',
+        column_toggle: true,
+        has_column_menu: true,
+        column_button_txt: 'Columns:',
         destroy: false
       }, (user_config || {}));
-      var flexitable = columnChooser($table, config, i);
 
       if (config.destroy) {
-        flexitable.destroy();
-      } else {
-        flexitable.init();
+        ColumnChooser($table, config, i).destroy();
+      } else if (config.column_toggle) {
+        ColumnChooser($table, config, i).init();
       }
     });
   };
 
 
-  function columnChooser($table, config, i) {
+  function ColumnChooser($table, config, i) {
     var persistent_css_class = 'persist';
     var essential_css_class = 'essential';
     var optional_css_class = 'optional';
@@ -89,7 +89,7 @@
             view_model.$table.addClass('flexitable-active');
 
             // NOTE: MUST build menu after _initCellsByHeader, not before
-            if (view_model.cfg.has_menu && view_model.cells_by_column) {
+            if (view_model.cfg.has_column_menu && view_model.cells_by_column) {
               _buildMenu(view_model);
             }
 
@@ -162,7 +162,7 @@
 
       // Build menu containers
       view_model.$menu = $('<div class="flexitable-menu flexitable-menu-closed" />');
-      view_model.$menu.$button = $('<button type="button" />').text(view_model.cfg.button_title);
+      view_model.$menu.$button = $('<button type="button" />').text(view_model.cfg.column_button_txt);
       view_model.$menu.$list = $('<ul />');
       view_model.$menu
         .append(view_model.$menu.$button)
