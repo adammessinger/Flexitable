@@ -20,15 +20,23 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 }
 
 /*-- Active table rules set baseline visibility for those w/o media query support --*/
-/* NOTE: Non-essential cells hidden by default (mobile first), so don't forget
-   to apply "essential" class to headers where needed. */
+
+/* NOTE: Non-essential cells are hidden by default (mobile first), so don't forget
+   to apply "essential", "persist", or "optional" data-flexitable-priority-class
+   attribute to headers where needed. You can also use that data attribute to set
+   your own media query rules with classes -- its value will be applied as a
+   class (or classes) to all cells in that header's column. Setting "persist" has
+   a special meaning: those columns are visible at all viewport widths AND can't
+   be turned off in the column menu. */
 
 .flexitable-active th,
 .flexitable-active td {
 	display: none;
 }
 .flexitable-active th.essential,
-.flexitable-active td.essential {
+.flexitable-active td.essential,
+.flexitable-active th.persist,
+.flexitable-active td.persist {
 	display: table-cell;
 }
 
