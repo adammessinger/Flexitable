@@ -16,7 +16,7 @@
 
  TODO: Dim table w/ opacity change while toggling? Would give visual feedback during slow toggle (> ~200ms) on large tables, and it's a relatively inexpensive style change in terms of rendering impact.
 
- TODO: "disable" method to render plugin non-functional without undoing it completely?
+ TODO: "disable" method to render plugin non-functional without undoing it completely? Appears to be as simple as setting button's "disabled" property to true.
 
  TODO: table search/filter, if it can be made fast enough
  **/
