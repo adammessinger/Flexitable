@@ -125,6 +125,7 @@
 
     function _initCellsByHeader(index, header) {
       var $header = $(header);
+      var priority_class = $header.data('flexitablePriorityClass');
       // NOTE: cell_num is used for nth-child selectors, which aren't 0-indexed
       var cell_num = index + 1;
       var $col_cells = view_model.$table.find('> thead th:nth-child(' + cell_num + '), > tbody td:nth-child(' + cell_num + ')');
@@ -132,7 +133,9 @@
       var i, l;
 
       for (i = 0, l = $col_cells.length; i < l; i++) {
-        $col_cells[i].className += (' ' + $header.data('flexitablePriorityClass'));
+        if (priority_class) {
+          $col_cells[i].className += (' ' + priority_class);
+        }
       }
 
       view_model.cells_by_column[index] = {
