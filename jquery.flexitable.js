@@ -104,10 +104,7 @@
               _insertMenu();
             }
 
-            view_model.$table.data('Flexitable', {
-              $menu: view_model.$menu,
-              $toolbar: view_model.$toolbar
-            });
+            view_model.$table.data('Flexitable', view_model);
 
             view_model.$table.trigger('flexitable.initialized');
           });
@@ -159,8 +156,7 @@
         $th: $header,
         heading_text: $header.text(),
         is_persistent_col: is_persistent_col,
-        // NOTE: no need to store cells for persistent columns, so we don't to save memory
-        $cells: is_persistent_col ? null : $col_cells
+        $cells: $col_cells
       });
     }
 
