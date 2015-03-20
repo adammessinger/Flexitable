@@ -8,13 +8,19 @@
  ...and also borrows some ideas from Tablesaw by Filament Group:
    https://github.com/filamentgroup/tablesaw
 
- TODO: Replace pre-defined classes for media queries like "essential" and "optional" with data-flexitable-media-class (data-flexitable-priority?) values. This value will be what gets placed on cells (including th) whose header has that data attr. The existing classes will remain the defaults, but this will allow users to easily define their own arbitrary classes for their own media query customizations. Will also get rid of the double-class problem on headers and potentially make removing classes as part of plugin deactivation method an option for the future.
+ TODO: Replace pre-defined classes for media queries like "essential" and "optional" with data-flexitable-priority-class values. This value will be what gets added to className on cells (including th) whose header has that data attr. The existing classes will remain the defaults, but with "persist" now implying the visual persistence of "essential" along with being un-toggleable. This arrangement will allow users to easily define their own arbitrary classes for their own media query customizations. Will also get rid of the double-class issue on headers and potentially make removing classes as part of plugin deactivation method an option for the future.
 
  TODO: Drop column toggle menu into page above table first. If user clicks menu button before init is complete, the drop-down will display a progress meter until this is hidden and checkbox list populated.
 
- TODO: Init column toggling only once column button is clicked? Wouldn't make much difference for small tables, and would save needless high processor usage on large tables.
+ TODO: Init column toggling only once column button is clicked? Shouldn't make much difference for small tables, and would save needless high processor usage on large tables.
 
- TODO: table search/filter
+ TODO: "refresh" method to re-init cells and view_model without rebuilding and re-placing toggle menu. Useful for tables that have been rebuilt due to some ajax operation.
+
+ TODO: Dim table w/ opacity change while toggling? Would give visual feedback during slow toggle (> ~200ms) on large tables, and it's a relatively inexpensive style change in terms of rendering impact.
+
+ TODO: "disable" method to render plugin non-functional without undoing it completely?
+
+ TODO: table search/filter, if it can be made fast enough
  **/
 
 ;(function($, undefined) {
