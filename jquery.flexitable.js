@@ -8,8 +8,6 @@
  ...and also borrows some ideas from Tablesaw by Filament Group:
    https://github.com/filamentgroup/tablesaw
 
- TODO: Replace pre-defined classes for media queries like "essential" and "optional" with data-flexitable-priority-class values. This value will be what gets added to className on cells (including th) whose header has that data attr. The existing classes will remain the defaults, but with "persist" now implying the visual persistence of "essential" along with being un-toggleable. This arrangement will allow users to easily define their own arbitrary classes for their own media query customizations. Will also get rid of the double-class issue on headers and potentially make removing classes as part of plugin deactivation method an option for the future.
-
  TODO: Drop column toggle menu into page above table first. If user clicks menu button before init is complete, the drop-down will display a progress meter until this is hidden and checkbox list populated.
 
  TODO: Init column toggling only once column button is clicked? Shouldn't make much difference for small tables, and would save needless high processor usage on large tables.
@@ -49,9 +47,6 @@
 
 
   function ColumnChooser($table, config, i) {
-    var persistent_css_class = 'persist';
-    var essential_css_class = 'essential';
-    var optional_css_class = 'optional';
     // view_model will contain all the data we need for future DOM manipulations.
     // Much faster than revisiting the DOM repeatedly.
     var view_model = {
@@ -98,7 +93,7 @@
             view_model.$table.addClass('flexitable-active');
 
             // NOTE: MUST build menu after _initCellsByHeader, not before
-            if (view_model.cfg.has_column_menu && view_model.cells_by_column) {
+            if (view_model.cfg.has_column_menu && view_model.cells_by_column.length) {
               _buildMenu();
               _initMenuInteractions();
               _insertMenu();
@@ -128,36 +123,26 @@
     }
 
 
-    function _initCellsByHeader(i, header) {
+    function _initCellsByHeader(index, header) {
       var $header = $(header);
-      var cells_by_column = view_model.cells_by_column;
-      var is_optional_col = $header.hasClass(optional_css_class);
-      var is_essential_col = $header.hasClass(essential_css_class);
-      var is_persistent_col = $header.hasClass(persistent_css_class);
       // NOTE: cell_num is used for nth-child selectors, which aren't 0-indexed
-      var cell_num = i + 1;
+      var cell_num = index + 1;
       var $col_cells = view_model.$table.find('> thead th:nth-child(' + cell_num + '), > tbody td:nth-child(' + cell_num + ')');
       // cell loop vars:
-      var i_cells, l_cells;
+      var i, l;
 
-      // NOTE: using a loop here saved init time for huge tables vs. .toggleClass()
-      for (i_cells = 0, l_cells = $col_cells.length; i_cells < l_cells; i_cells++) {
-        $col_cells[i_cells].className += is_essential_col
-          ? (' ' + essential_css_class)
-          : '';
-        $col_cells[i_cells].className += is_optional_col
-          ? (' ' + optional_css_class)
-          : '';
+      for (i = 0, l = $col_cells.length; i < l; i++) {
+        $col_cells[i].className += (' ' + $header.data('flexitablePriorityClass'));
       }
 
-      cells_by_column.push({
+      view_model.cells_by_column[index] = {
         // NOTE: we're using the th's visibility as a proxy for the column's
         is_visible: ($header.css('display') === 'table-cell'),
         $th: $header,
         heading_text: $header.text(),
-        is_persistent_col: is_persistent_col,
+        is_persistent_col: $header.hasClass('persist'),
         $cells: $col_cells
-      });
+      };
     }
 
 
@@ -166,7 +151,7 @@
     // be triggered. The function will be called after it stops being called for
     // N milliseconds. If 'immediate' is passed, trigger the function on the
     // leading edge instead of the trailing.
-    function debounce(func, wait, immediate) {
+    function _debounce(func, wait, immediate) {
       var timeout;
       var result;
 
@@ -253,7 +238,7 @@
         .on('updateCheck', 'input[name="toggle-cols"]', _updateMenuCheckbox);
 
       // Update checkbox status on viewport changes.
-      $(window).on('orientationchange resize', debounce(_updateCheckboxesOnViewportChange, 500));
+      $(window).on('orientationchange resize', _debounce(_updateCheckboxesOnViewportChange, 500));
 
       // Close menu when user clicks anywhere outside the menu.
       $(document).on('click', _closeMenuOnOutsideClick);
