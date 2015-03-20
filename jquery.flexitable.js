@@ -8,6 +8,8 @@
  ...and also borrows some ideas from Tablesaw by Filament Group:
    https://github.com/filamentgroup/tablesaw
 
+ TODO: Replace pre-defined classes for media queries like "essential" and "optional" with data-flexitable-media-class (data-flexitable-priority?) values. This value will be what gets placed on cells (including th) whose header has that data attr. The existing classes will remain the defaults, but this will allow users to easily define their own arbitrary classes for their own media query customizations. Will also get rid of the double-class problem on headers and potentially make removing classes as part of plugin deactivation method an option for the future.
+
  TODO: Drop column toggle menu into page above table first. If user clicks menu button before init is complete, the drop-down will display a progress meter until this is hidden and checkbox list populated.
 
  TODO: Init column toggling only once column button is clicked? Wouldn't make much difference for small tables, and would save needless high processor usage on large tables.
