@@ -38,15 +38,15 @@
       }, (user_config || {}));
 
       if (config.destroy) {
-        ColumnChooser($table, config, i).destroy();
+        columnChooser($table, config, i).destroy();
       } else if (config.column_toggle) {
-        ColumnChooser($table, config, i).init();
+        columnChooser($table, config, i).init();
       }
     });
   };
 
 
-  function ColumnChooser($table, config, i) {
+  function columnChooser($table, config, i) {
     // view_model will contain all the data we need for future DOM manipulations.
     // Much faster than revisiting the DOM repeatedly.
     var view_model = {
@@ -108,18 +108,18 @@
 
 
     function destroyFlexitable() {
-      var flexitable_data = view_model.$table.data('Flexitable');
+      var stored_view_model = $table.data('Flexitable');
 
-      if (!flexitable_data) {
+      if (!stored_view_model) {
         return;
       }
 
-      flexitable_data.$menu.remove();
-      flexitable_data.$toolbar.remove();
+      stored_view_model.$menu.remove();
+      stored_view_model.$toolbar.remove();
       // remove active class to nix Flexitable media queries
-      view_model.$table.removeClass('flexitable-active');
+      $table.removeClass('flexitable-active');
       // remove stored plugin data on the table
-      view_model.$table.removeData('Flexitable');
+      $table.removeData('Flexitable');
     }
 
 
