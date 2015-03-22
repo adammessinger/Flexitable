@@ -17,7 +17,7 @@
       var $table = $(this);
       var config = $.extend({
         column_toggle: true,
-        has_column_menu: true,
+        column_menu: true,
         column_button_txt: 'Columns:',
         // NOTE: takes a CSS selector; 'this' means position relative to the enhanced table
         toolbar_position_target: 'this',
@@ -81,7 +81,7 @@
             view_model.$table.addClass('flexitable-active');
 
             // NOTE: MUST build menu after _initCellsByHeader, not before
-            if (view_model.cfg.has_column_menu && view_model.cells_by_column.length) {
+            if (view_model.cfg.column_menu && view_model.cells_by_column.length) {
               _buildMenu();
               _initMenuInteractions();
               _insertMenu();
