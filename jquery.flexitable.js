@@ -26,15 +26,15 @@
       }, (user_config || {}));
 
       if (config.destroy) {
-        columnChooser($table, config, i).destroy();
+        columnChooserFactory($table, config, i).destroy();
       } else if (config.column_toggle) {
-        columnChooser($table, config, i).init();
+        columnChooserFactory($table, config, i).init();
       }
     });
   };
 
 
-  function columnChooser($table, config, i) {
+  function columnChooserFactory($table, config, i) {
     // view_model will contain all the data we need for future DOM manipulations.
     // Much faster than revisiting the DOM repeatedly.
     var view_model = {
@@ -52,12 +52,12 @@
 
     // public methods
     return {
-      init: initFlexitable,
-      destroy: destroyFlexitable
+      init: initColumnChooser,
+      destroy: destroyColumnChooser
     };
 
 
-    function initFlexitable() {
+    function initColumnChooser() {
       var $headers;
 
       // Prevent re-initialization
@@ -95,7 +95,7 @@
     }
 
 
-    function destroyFlexitable() {
+    function destroyColumnChooser() {
       var stored_view_model = $table.data('Flexitable');
 
       if (!stored_view_model) {
