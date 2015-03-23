@@ -89,7 +89,7 @@
 
             view_model.$table.data('Flexitable', view_model);
 
-            view_model.$table.trigger('flexitable.initialized');
+            view_model.$table.trigger('toggle-initialized.flexitable');
           });
       }
     }
@@ -97,7 +97,6 @@
 
     function destroyColumnChooser() {
       var stored_view_model = $table.data('Flexitable');
-      var cols, i, l;
 
       if (!stored_view_model) {
         return;
@@ -108,13 +107,20 @@
       stored_view_model.$table.removeClass('flexitable-active');
 
       // remove media priority classes from cells
-      cols = stored_view_model.cells_by_column;
-      for (i = 0, l = cols.length; i < l; i++) {
-        cols[i].$cells.removeClass(cols[i].$th.data('flexitablePriorityClass'));
-      }
+      $.deferredEach(stored_view_model.cells_by_column, _removePriorityClasses)
+        .done(function() {
+          // remove stored plugin data on the table
+          stored_view_model.$table.removeData('Flexitable');
+          // signal completion, then unbind ALL Flexitable event handlers
+          $table
+            .trigger('toggle-destroyed.flexitable')
+            .off('.flexitable');
+        });
 
-      // remove stored plugin data on the table
-      stored_view_model.$table.removeData('Flexitable');
+      function _removePriorityClasses(i, column_data) {
+        column_data.$cells
+          .removeClass(column_data.$th.data('flexitablePriorityClass'));
+      }
     }
 
 
