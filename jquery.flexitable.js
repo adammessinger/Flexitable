@@ -97,17 +97,24 @@
 
     function destroyColumnChooser() {
       var stored_view_model = $table.data('Flexitable');
+      var cols, i, l;
 
       if (!stored_view_model) {
         return;
       }
 
-      stored_view_model.$menu.remove();
       stored_view_model.$toolbar.remove();
       // remove active class to nix Flexitable media queries
-      $table.removeClass('flexitable-active');
+      stored_view_model.$table.removeClass('flexitable-active');
+
+      // remove media priority classes from cells
+      cols = stored_view_model.cells_by_column;
+      for (i = 0, l = cols.length; i < l; i++) {
+        cols[i].$cells.removeClass(cols[i].$th.data('flexitablePriorityClass'));
+      }
+
       // remove stored plugin data on the table
-      $table.removeData('Flexitable');
+      stored_view_model.$table.removeData('Flexitable');
     }
 
 
