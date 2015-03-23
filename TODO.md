@@ -6,5 +6,5 @@
 * "disable" method to render plugin non-functional without undoing it completely? Appears to be as simple as setting button's "disabled" property to true. "enable" method to turn it back on again.
 * "refresh" method to re-init cells by column without rebuilding and re-placing toggle menu. Useful for tables that have been rebuilt due to some ajax operation, but still have the same columns.
 * "rebuild" (private?) method to destroy and reinitialize Flexitable
-* Instead of instantiating a column chooser whenever Flexitable is called, store its returned methods on the view model for re-use? Not sure yet how much this would actually get us other than the ability to, for example, `$('#product-comparator').data('Flexitable').columnChooser.refresh()`.
+* Instead of instantiating a column chooser whenever Flexitable is called, store its returned methods on the view model for re-use? Not sure yet how much this would actually get us other than the ability to, for example, `$('#product-comparator').data('Flexitable').columnChooser.refresh()`. That would be enough, though, if any of the methods in question returned a promise that can't be chained when the method is invoked indirectly via the plugin's options.
 * table search/filter, if it can be made fast enough
