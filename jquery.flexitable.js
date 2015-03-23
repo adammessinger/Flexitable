@@ -115,6 +115,8 @@
           $table
             .trigger('toggle-destroyed.flexitable')
             .off('.flexitable');
+          // unbind click and viewport change listeners related to menu
+          $(window).add(document).off('.flexitable')
         });
 
       function _removePriorityClasses(i, column_data) {
@@ -242,10 +244,10 @@
         .on('updateCheck', 'input[name="toggle-cols"]', _updateMenuCheckbox);
 
       // Update checkbox status on viewport changes.
-      $(window).on('orientationchange resize', _debounce(_updateCheckboxesOnViewportChange, 500));
+      $(window).on('orientationchange.flexitable resize.flexitable', _debounce(_updateCheckboxesOnViewportChange, 500));
 
       // Close menu when user clicks anywhere outside the menu.
-      $(document).on('click', _closeMenuOnOutsideClick);
+      $(document).on('click.flexitable', _closeMenuOnOutsideClick);
     }
 
 
