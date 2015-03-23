@@ -103,7 +103,6 @@
         return;
       }
 
-      stored_view_model.$menu.remove();
       stored_view_model.$toolbar.remove();
       // remove active class to nix Flexitable media queries
       stored_view_model.$table.removeClass('flexitable-active');
