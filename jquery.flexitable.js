@@ -1,5 +1,6 @@
 /**
  Flexitable jQuery plugin
+ https://github.com/adammessinger/Flexitable
  Copyright (c) 2015 Adam Messinger, http://zenscope.com/
  Released under the MIT license, see LICENSE file for details.
 
