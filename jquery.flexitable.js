@@ -210,7 +210,7 @@
           $this_checkbox.prop('checked', cells_by_column[i].is_visible);
 
           $this_label = $('<label />', {
-            for: (checkbox_id_pfx + i),
+            'for': (checkbox_id_pfx + i),
             text: cells_by_column[i].heading_text
           });
 
