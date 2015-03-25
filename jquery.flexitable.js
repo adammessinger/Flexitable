@@ -20,8 +20,8 @@
         column_toggle: true,
         column_menu: true,
         column_button_txt: 'Columns:',
-        // NOTE: takes a CSS selector; 'this' means position relative to the enhanced table
-        toolbar_position_target: 'this',
+        // NOTE: takes a CSS selector, DOM element, or jQuery collection
+        toolbar_position_target: $table,
         toolbar_before_or_after: 'before',
         destroy: false
       }, (user_config || {}));
@@ -223,18 +223,19 @@
 
 
     function _insertMenu() {
-      var placement_target = view_model.cfg.toolbar_position_target === 'this'
-        ? view_model.$table
-        : $(view_model.cfg.toolbar_position_target);
       var placement_method = view_model.cfg.toolbar_before_or_after.toLowerCase() === 'after'
         ? 'insertAfter'
         : 'insertBefore';
+      // "jQuerify" the positioning target if it isn't already
+      var $placement_target = view_model.cfg.toolbar_position_target.jquery
+        ? view_model.cfg.toolbar_position_target
+        : $(view_model.cfg.toolbar_position_target);
 
       view_model.$toolbar
         .append(view_model.$menu)
         // Add a class to the toolbar to inform about menu presence.
         .addClass('flexitable-toolbar-has-widgets')
-        [placement_method](placement_target);
+        [placement_method]($placement_target);
     }
 
 
