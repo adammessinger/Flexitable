@@ -136,8 +136,8 @@
       // cell loop vars:
       var i, l;
 
-      for (i = 0, l = $col_cells.length; i < l; i++) {
-        if (priority_class) {
+      if (priority_class) {
+        for (i = 0, l = $col_cells.length; i < l; i++) {
           $col_cells[i].className += (' ' + priority_class);
         }
       }
