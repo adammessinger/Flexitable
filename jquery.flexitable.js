@@ -104,6 +104,8 @@
       }
 
       stored_view_model.$toolbar.remove();
+      // unbind click and viewport change listeners related to menu
+      $(window).add(document).off('.flexitable');
       // remove active class to nix Flexitable media queries
       stored_view_model.$table.removeClass('flexitable-active');
 
@@ -111,13 +113,13 @@
       $.deferredEach(stored_view_model.cells_by_column, _removePriorityClasses)
         .done(function() {
           // remove stored plugin data on the table
-          stored_view_model.$table.removeData('Flexitable');
+          $table.removeData('Flexitable');
           // signal completion, then unbind ALL Flexitable event handlers
           $table
             .trigger('toggle-destroyed.flexitable')
             .off('.flexitable');
-          // unbind click and viewport change listeners related to menu
-          $(window).add(document).off('.flexitable')
+          // break reference to view_model for garbage collection
+          view_model = null;
         });
 
       function _removePriorityClasses(i, column_data) {
