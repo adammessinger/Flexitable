@@ -89,6 +89,13 @@
       if ($headers.length) {
         // NOTE: "deferredEach" plugin is tacked onto the very bottom of this file
         return $.deferredEach($headers, _initCellsByHeader)
+          .progress(function(amt_done) {
+            if (amt_done < 1){
+              $menu.$button.text(Math.round(amt_done * 100) + '%');
+            } else {
+              $menu.$button.text(view_model.cfg.column_button_txt);
+            }
+          })
           .then (function() {
             // 'flexitable-active' class enables media queries, once above init gives
             // proper classes to cells
@@ -115,7 +122,7 @@
         return;
       }
 
-      view_model.$toolbar.remove();
+      _disableTogglerMenu();
       // unbind click and viewport change listeners related to menu
       $(window).add(document).off('.flexitable');
       // remove active class to nix Flexitable media queries
@@ -123,6 +130,9 @@
 
       // remove media priority classes from cells
       return $.deferredEach(column_data, _removePriorityClasses)
+        .progress(function(amt_done) {
+          $menu.$button.text(Math.round((1 - amt_done) * 100) + '%');
+        })
         .then(function() {
           // remove stored plugin data on the table
           view_model.$table.removeData('Flexitable');
@@ -131,6 +141,7 @@
             .trigger('toggle-destroyed.flexitable')
             .off('.flexitable');
           // break references to enable garbage collection
+          view_model.$toolbar.remove();
           column_data = null;
           view_model = null;
         });
