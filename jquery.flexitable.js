@@ -25,31 +25,36 @@
         toolbar_before_or_after: 'before',
         destroy: false
       }, (user_config || {}));
+      // The view model will contain all the data and methods we need for future
+      // DOM manipulations.
+      var viewModel = $table.data('Flexitable') || {
+          id: $table[0].id,
+          cfg: config,
+          $table: $table,
+          $toolbar: $('<div class="flexitable-toolbar" />')
+        };
+
+      if (!viewModel.toggler || $.isEmptyObject(viewModel.toggler)) {
+        viewModel.toggler = columnChooserFactory(viewModel, i);
+      }
 
       if (config.destroy) {
-        columnChooserFactory($table, config, i).destroy();
+        viewModel.toggler.destroy();
+        // break ref to viewModel so it's available for garbage collection
+        viewModel = null;
       } else if (config.column_toggle) {
-        columnChooserFactory($table, config, i).init();
+        viewModel.toggler.init();
       }
     });
   };
 
 
-  function columnChooserFactory($table, config, i) {
-    // view_model will contain all the data we need for future DOM manipulations.
-    // Much faster than revisiting the DOM repeatedly.
-    var view_model = {
-      id: $table[0].id,
-      // cfg: this table's Flexitable config
-      cfg: config,
-      $table: $table,
-      $toolbar: $('<div class="flexitable-toolbar" />'),
-      // $menu: will hold column toggle menu
-      $menu: null,
-      // cells_by_column: array of objects w/ each col's header txt & th,
-      // contained cells, and visibility & persistence states
-      cells_by_column: []
-    };
+  function columnChooserFactory(view_model, i) {
+    // $menu: will hold toggle menu container, menu, and button
+    var $menu = {};
+    // column_data: will hold an array of column data -- header el, header txt,
+    // cells, visibility, persistence
+    var column_data = [];
 
     // public methods
     return {
@@ -75,14 +80,14 @@
       $headers = view_model.$table.find('> thead th');
       if ($headers.length) {
         // NOTE: "deferredEach" plugin is tacked onto the very bottom of this file
-        $.deferredEach($headers, _initCellsByHeader)
-          .done(function() {
+        return $.deferredEach($headers, _initCellsByHeader)
+          .then (function() {
             // 'flexitable-active' class enables media queries, once above init gives
             // proper classes to cells
             view_model.$table.addClass('flexitable-active');
 
             // NOTE: MUST build menu after _initCellsByHeader, not before
-            if (view_model.cfg.column_menu && view_model.cells_by_column.length) {
+            if (view_model.cfg.column_menu && column_data.length) {
               _buildMenu();
               _initMenuInteractions();
               _insertMenu();
@@ -97,28 +102,29 @@
 
 
     function destroyColumnChooser() {
-      var stored_view_model = $table.data('Flexitable');
+      var stored_view_model = view_model.$table.data('Flexitable');
 
       if (!stored_view_model) {
         return;
       }
 
-      stored_view_model.$toolbar.remove();
+      view_model.$toolbar.remove();
       // unbind click and viewport change listeners related to menu
       $(window).add(document).off('.flexitable');
       // remove active class to nix Flexitable media queries
-      stored_view_model.$table.removeClass('flexitable-active');
+      view_model.$table.removeClass('flexitable-active');
 
       // remove media priority classes from cells
-      $.deferredEach(stored_view_model.cells_by_column, _removePriorityClasses)
-        .done(function() {
+      return $.deferredEach(column_data, _removePriorityClasses)
+        .then(function() {
           // remove stored plugin data on the table
-          $table.removeData('Flexitable');
+          view_model.$table.removeData('Flexitable');
           // signal completion, then unbind ALL Flexitable event handlers
-          $table
+          view_model.$table
             .trigger('toggle-destroyed.flexitable')
             .off('.flexitable');
-          // break reference to view_model for garbage collection
+          // break references to enable garbage collection
+          column_data = null;
           view_model = null;
         });
 
@@ -144,7 +150,7 @@
         }
       }
 
-      view_model.cells_by_column[index] = {
+      column_data[index] = {
         // NOTE: we're using the th's visibility as a proxy for the column's
         is_visible: ($header.css('display') === 'table-cell'),
         $th: $header,
@@ -186,22 +192,21 @@
 
 
     function _buildMenu() {
-      var cells_by_column = view_model.cells_by_column;
       var checkbox_id_pfx = (view_model.id + '_toggle-col-');
       var li_cache = [];
       var i, l, $this_checkbox, $this_label;
 
       // Build menu containers
-      view_model.$menu = $('<div class="flexitable-menu flexitable-menu-closed" />');
-      view_model.$menu.$button = $('<button type="button" />').text(view_model.cfg.column_button_txt);
-      view_model.$menu.$list = $('<ul />');
-      view_model.$menu
-        .append(view_model.$menu.$button)
-        .append(view_model.$menu.$list);
+      $menu = $('<div class="flexitable-menu flexitable-menu-closed" />');
+      $menu.$button = $('<button type="button" />').text(view_model.cfg.column_button_txt);
+      $menu.$list = $('<ul />');
+      $menu
+        .append($menu.$button)
+        .append($menu.$list);
 
       // populate menu with checkboxes for each non-persistent column
-      for (i = 0, l = cells_by_column.length; i < l; i++) {
-        if (!cells_by_column[i].is_persistent_col) {
+      for (i = 0, l = column_data.length; i < l; i++) {
+        if (!column_data[i].is_persistent_col) {
           $this_checkbox = $('<input />', {
             type: 'checkbox',
             name: 'toggle-cols',
@@ -209,18 +214,18 @@
             value: i,
             'data-flexitable-id': view_model.id
           });
-          $this_checkbox.prop('checked', cells_by_column[i].is_visible);
+          $this_checkbox.prop('checked', column_data[i].is_visible);
 
           $this_label = $('<label />', {
             'for': (checkbox_id_pfx + i),
-            text: cells_by_column[i].heading_text
+            text: column_data[i].heading_text
           });
 
           li_cache.push($('<li />').append($this_checkbox).append($this_label))
         }
       }
 
-      view_model.$menu.$list.append(li_cache);
+      $menu.$list.append(li_cache);
     }
 
 
@@ -234,7 +239,7 @@
         : $(view_model.cfg.toolbar_position_target);
 
       view_model.$toolbar
-        .append(view_model.$menu)
+        .append($menu)
         // Add a class to the toolbar to inform about menu presence.
         .addClass('flexitable-toolbar-has-widgets')
         [placement_method]($placement_target);
@@ -242,7 +247,7 @@
 
 
     function _initMenuInteractions() {
-      view_model.$menu
+      $menu
         .on('click', 'button', _toggleMenuVisibility)
         .on('change', 'input[name="toggle-cols"]', _toggleColumn)
         .on('updateCheck', 'input[name="toggle-cols"]', _updateMenuCheckbox);
@@ -256,49 +261,49 @@
 
 
     function _toggleMenuVisibility() {
-      view_model.$menu.toggleClass('flexitable-menu-closed');
+      $menu.toggleClass('flexitable-menu-closed');
     }
 
 
     function _closeMenuOnOutsideClick(event) {
-      if (!view_model.$menu.find(event.target).length) {
-        view_model.$menu.addClass('flexitable-menu-closed');
+      if (!$menu.find(event.target).length) {
+        $menu.addClass('flexitable-menu-closed');
       }
     }
 
 
     function _toggleColumn(event) {
       var checkbox = event.target;
-      // NOTE: checkbox value is the same as column index from view_model.cells_by_column
+      // NOTE: checkbox value is the same as column index from column_data
       var i_col = parseInt(checkbox.value, 10);
 
-      view_model.cells_by_column[i_col].$cells
+      column_data[i_col].$cells
         .toggleClass('flexitable-cell-shown', checkbox.checked)
         .toggleClass('flexitable-cell-hidden', !checkbox.checked);
 
-      // update active state in view_model
-      view_model.cells_by_column[i_col].is_visible = checkbox.checked;
+      // update column's active state
+      column_data[i_col].is_visible = checkbox.checked;
     }
 
 
     function _updateMenuCheckbox(event) {
       var checkbox = event.target;
-      // NOTE: checkbox value is the same as column index from view_model.cells_by_column
+      // NOTE: checkbox value is the same as column index from column_data
       var i_col = parseInt(checkbox.value, 10);
 
-      checkbox.checked = view_model.cells_by_column[i_col].is_visible;
+      checkbox.checked = column_data[i_col].is_visible;
     }
 
 
     function _updateCheckboxesOnViewportChange() {
-      var i, l, cells_by_column = view_model.cells_by_column;
+      var i, l, cells_by_column = column_data;
 
       // update active state of columns
       for (i = 0, l = cells_by_column.length; i < l; i++) {
         cells_by_column[i].is_visible = (cells_by_column[i].$th.css('display') === 'table-cell');
       }
       // update all checkboxes
-      view_model.$menu.$list.find('input').trigger('updateCheck');
+      $menu.$list.find('input').trigger('updateCheck');
     }
   }
 })(jQuery);
