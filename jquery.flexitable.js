@@ -131,8 +131,11 @@
         });
 
       function _removePriorityClasses(i, column_data) {
-        column_data.$cells
-          .removeClass(column_data.$th.data('flexitablePriorityClass'));
+        var priority_class = column_data.$th.data('flexitablePriorityClass');
+
+        if (priority_class) {
+          column_data.$cells.removeClass(priority_class);
+        }
       }
     }
 
