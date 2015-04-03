@@ -35,13 +35,15 @@
         };
 
       if (!viewModel.toggler || $.isEmptyObject(viewModel.toggler)) {
-        viewModel.toggler = columnChooserFactory(viewModel, i);
+        viewModel.toggler = columnTogglerFactory(viewModel, i);
       }
 
       if (config.destroy) {
-        viewModel.toggler.destroy();
-        // break ref to viewModel so it's available for garbage collection
-        viewModel = null;
+        viewModel.toggler.destroy()
+          .done(function() {
+            // break ref to viewModel so it's available for garbage collection
+            viewModel = null;
+          });
       } else if (config.column_toggle) {
         viewModel.toggler.init();
       }
@@ -49,7 +51,7 @@
   };
 
 
-  function columnChooserFactory(view_model, i) {
+  function columnTogglerFactory(view_model, i) {
     // $menu: will hold toggle menu container, menu, and button
     var $menu = {};
     // column_data: will hold an array of column data -- header el, header txt,
@@ -58,12 +60,12 @@
 
     // public methods
     return {
-      init: initColumnChooser,
-      destroy: destroyColumnChooser
+      init: initColumnToggler,
+      destroy: destroyColumnToggler
     };
 
 
-    function initColumnChooser() {
+    function initColumnToggler() {
       var $headers;
 
       // Prevent re-initialization
@@ -101,7 +103,7 @@
     }
 
 
-    function destroyColumnChooser() {
+    function destroyColumnToggler() {
       var stored_view_model = view_model.$table.data('Flexitable');
 
       if (!stored_view_model) {
