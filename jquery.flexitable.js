@@ -34,7 +34,7 @@
           $toolbar: $('<div class="flexitable-toolbar" />')
         };
 
-      if (!viewModel.toggler || $.isEmptyObject(viewModel.toggler)) {
+      if (config.column_toggle && !viewModel.toggler) {
         viewModel.toggler = columnTogglerFactory(viewModel, i);
       }
 
