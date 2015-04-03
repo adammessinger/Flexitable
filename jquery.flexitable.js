@@ -53,7 +53,7 @@
 
   function columnTogglerFactory(view_model, i) {
     // $menu: will hold toggle menu container, menu, and button
-    var $menu = {};
+    var $menu = $('<div class="flexitable-menu flexitable-menu-closed" />');
     // column_data: will hold an array of column data -- header el, header txt,
     // cells, visibility, persistence
     var column_data = [];
@@ -79,6 +79,12 @@
         view_model.$table[0].id = view_model.id;
       }
 
+      if (view_model.cfg.column_menu) {
+        _buildMenuComponents();
+        _disableTogglerMenu();
+        _insertMenu();
+      }
+
       $headers = view_model.$table.find('> thead th');
       if ($headers.length) {
         // NOTE: "deferredEach" plugin is tacked onto the very bottom of this file
@@ -88,11 +94,10 @@
             // proper classes to cells
             view_model.$table.addClass('flexitable-active');
 
-            // NOTE: MUST build menu after _initCellsByHeader, not before
             if (view_model.cfg.column_menu && column_data.length) {
-              _buildMenu();
+              _populateColumnList();
               _initMenuInteractions();
-              _insertMenu();
+              _enableTogglerMenu();
             }
 
             view_model.$table.data('Flexitable', view_model);
@@ -196,20 +201,25 @@
     }
 
 
-    function _buildMenu() {
-      var checkbox_id_pfx = (view_model.id + '_toggle-col-');
-      var li_cache = [];
-      var i, l, $this_checkbox, $this_label;
-
-      // Build menu containers
-      $menu = $('<div class="flexitable-menu flexitable-menu-closed" />');
+    function _buildMenuComponents() {
       $menu.$button = $('<button type="button" />').text(view_model.cfg.column_button_txt);
       $menu.$list = $('<ul />');
       $menu
         .append($menu.$button)
         .append($menu.$list);
+    }
 
-      // populate menu with checkboxes for each non-persistent column
+
+    function _populateColumnList() {
+      var checkbox_id_pfx = (view_model.id + '_toggle-col-');
+      var li_cache = [];
+      var i, l, $this_checkbox, $this_label;
+
+      if ($menu.$list.is_populated) {
+        $menu.$list.empty();
+      }
+
+      // populate with checkboxes for each non-persistent column
       for (i = 0, l = column_data.length; i < l; i++) {
         if (!column_data[i].is_persistent_col) {
           $this_checkbox = $('<input />', {
@@ -231,23 +241,39 @@
       }
 
       $menu.$list.append(li_cache);
+      $menu.$list.is_populated = true;
     }
 
 
     function _insertMenu() {
-      var placement_method = view_model.cfg.toolbar_before_or_after.toLowerCase() === 'after'
-        ? 'insertAfter'
-        : 'insertBefore';
-      // "jQuerify" the positioning target if it isn't already
-      var $placement_target = view_model.cfg.toolbar_position_target.jquery
-        ? view_model.cfg.toolbar_position_target
-        : $(view_model.cfg.toolbar_position_target);
+      var placement_method, $placement_target;
 
       view_model.$toolbar
         .append($menu)
-        // Add a class to the toolbar to inform about menu presence.
-        .addClass('flexitable-toolbar-has-widgets')
-        [placement_method]($placement_target);
+        // Add a class to the toolbar to inform about menu presence & style accordingly
+        .addClass('flexitable-toolbar-has-widgets');
+
+      if (!view_model.$toolbar.is_inserted) {
+        placement_method = view_model.cfg.toolbar_before_or_after.toLowerCase() === 'after'
+          ? 'insertAfter'
+          : 'insertBefore';
+        // "jQuerify" the positioning target if it isn't already
+        $placement_target = view_model.cfg.toolbar_position_target.jquery
+          ? view_model.cfg.toolbar_position_target
+          : $(view_model.cfg.toolbar_position_target);
+        view_model.$toolbar[placement_method]($placement_target);
+        view_model.$toolbar.is_inserted = true;
+      }
+    }
+
+
+    function _disableTogglerMenu() {
+      $menu.$button.prop('disabled', true);
+    }
+
+
+    function _enableTogglerMenu() {
+      $menu.$button.prop('disabled', false);
     }
 
 
