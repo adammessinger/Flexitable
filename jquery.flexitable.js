@@ -17,10 +17,12 @@
     return this.each(function(i) {
       var $table = $(this);
       var config = $.extend({
-        column_toggle: true,
-        column_menu: true,
-        column_button_txt: 'Columns:',
-        // NOTE: takes a CSS selector, DOM element, or jQuery collection
+        toggle_columns: true,
+        use_toggle_button: true,
+        toggle_button_txt: 'Columns:',
+        init_toggle_on_button_click: false,
+        // NOTE: toolbar_position_target takes a CSS selector, DOM element, or
+        // jQuery collection
         toolbar_position_target: $table,
         toolbar_before_or_after: 'before',
         destroy: false
@@ -34,7 +36,7 @@
           $toolbar: $('<div class="flexitable-toolbar" />')
         };
 
-      if (config.column_toggle && !viewModel.toggler) {
+      if (config.toggle_columns && !viewModel.toggler) {
         viewModel.toggler = columnTogglerFactory(viewModel, i);
       }
 
@@ -44,7 +46,7 @@
             // break ref to viewModel so it's available for garbage collection
             viewModel = null;
           });
-      } else if (config.column_toggle) {
+      } else if (config.toggle_columns) {
         viewModel.toggler.init();
       }
     });
@@ -66,51 +68,24 @@
 
 
     function initColumnToggler() {
-      var $headers;
+      var insert_button_disabled = !view_model.cfg.init_toggle_on_button_click;
 
       // Prevent re-initialization
       if (view_model.$table.data('Flexitable')) {
         return;
       }
 
-      // Set table ID if not specified
-      if (!view_model.id) {
-        view_model.id = 'flexitable-' + i;
-        view_model.$table[0].id = view_model.id;
-      }
-
-      if (view_model.cfg.column_menu) {
-        _buildMenuComponents();
-        _disableTogglerMenu();
-        _insertMenu();
-      }
-
-      $headers = view_model.$table.find('> thead th');
-      if ($headers.length) {
-        // NOTE: "deferredEach" plugin is tacked onto the very bottom of this file
-        return $.deferredEach($headers, _initCellsByHeader)
-          .progress(function(amt_done) {
-            if (amt_done < 1){
-              $menu.$button.text(Math.round(amt_done * 100) + '%');
-            } else {
-              $menu.$button.text(view_model.cfg.column_button_txt);
-            }
-          })
-          .then (function() {
-            // 'flexitable-active' class enables media queries, once above init gives
-            // proper classes to cells
-            view_model.$table.addClass('flexitable-active');
-
-            if (view_model.cfg.column_menu && column_data.length) {
-              _populateColumnList();
-              _initMenuInteractions();
-              _enableTogglerMenu();
-            }
-
-            view_model.$table.data('Flexitable', view_model);
-
-            view_model.$table.trigger('toggle-initialized.flexitable');
+      _setTableId();
+      _insertTogglerButton(insert_button_disabled);
+      if (view_model.cfg.init_toggle_on_button_click) {
+        $menu.$button.one('click', function() {
+          _disableTogglerMenu();
+          _initTogglerButton().done(function() {
+            _toggleMenuVisibility();
           });
+        });
+      } else {
+        _initTogglerButton();
       }
     }
 
@@ -122,7 +97,11 @@
         return;
       }
 
+      if (!$menu.hasClass('flexitable-menu-closed')) {
+        _toggleMenuVisibility();
+      }
       _disableTogglerMenu();
+
       // unbind click and viewport change listeners related to menu
       $(window).add(document).off('.flexitable');
       // remove active class to nix Flexitable media queries
@@ -130,8 +109,8 @@
 
       // remove media priority classes from cells
       return $.deferredEach(column_data, _removePriorityClasses)
-        .progress(function(amt_done) {
-          $menu.$button.text(Math.round((1 - amt_done) * 100) + '%');
+        .progress(function(amount_done) {
+          $menu.$button.text(Math.round((1 - amount_done) * 100) + '%');
         })
         .then(function() {
           // remove stored plugin data on the table
@@ -152,6 +131,57 @@
         if (priority_class) {
           column_data.$cells.removeClass(priority_class);
         }
+      }
+    }
+
+
+    function _setTableId() {
+      // Set table ID if not specified
+      if (!view_model.id) {
+        view_model.id = 'flexitable-' + i;
+        view_model.$table[0].id = view_model.id;
+      }
+    }
+
+
+    function _insertTogglerButton(disabled) {
+      if (view_model.cfg.use_toggle_button) {
+        _buildMenuComponents();
+        if (disabled) {
+          _disableTogglerMenu();
+        }
+        _insertMenu();
+      }
+    }
+
+
+    function _initTogglerButton() {
+      var $headers = view_model.$table.find('> thead th');
+
+      if ($headers.length) {
+        // NOTE: "deferredEach" plugin is tacked onto the very bottom of this file
+        return $.deferredEach($headers, _initCellsByHeader)
+          .progress(function(amount_done) {
+            if (amount_done < 1){
+              $menu.$button.text(Math.round(amount_done * 100) + '%');
+            } else {
+              $menu.$button.text(view_model.cfg.toggle_button_txt);
+            }
+          })
+          .then(function() {
+            // 'flexitable-active' class enables media queries, once above init gives
+            // proper classes to cells
+            view_model.$table.addClass('flexitable-active');
+
+            if (view_model.cfg.use_toggle_button && column_data.length) {
+              _populateColumnList();
+              _initMenuInteractions();
+              _enableTogglerMenu();
+            }
+
+            view_model.$table.data('Flexitable', view_model);
+            view_model.$table.trigger('toggle-initialized.flexitable');
+          });
       }
     }
 
@@ -213,7 +243,7 @@
 
 
     function _buildMenuComponents() {
-      $menu.$button = $('<button type="button" />').text(view_model.cfg.column_button_txt);
+      $menu.$button = $('<button type="button" />').text(view_model.cfg.toggle_button_txt);
       $menu.$list = $('<ul />');
       $menu
         .append($menu.$button)
