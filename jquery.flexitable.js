@@ -64,7 +64,8 @@
 
 
     function initColumnToggler() {
-      var insert_button_disabled = !view_model.cfg.init_toggle_on_button_click;
+      var is_lazy_init = view_model.cfg.use_toggle_button && view_model.cfg.init_toggle_on_button_click;
+      var insert_button_disabled = !is_lazy_init;
 
       // Prevent re-initialization
       if (view_model.$table.data('Flexitable')) {
@@ -73,7 +74,7 @@
 
       _setTableId();
       _insertTogglerButton(insert_button_disabled);
-      if (view_model.cfg.init_toggle_on_button_click) {
+      if (is_lazy_init) {
         $menu.$button.one('click', function() {
           _disableTogglerMenu();
           _initTogglerButton().done(function() {
@@ -87,9 +88,7 @@
 
 
     function destroyColumnToggler() {
-      var stored_view_model = view_model.$table.data('Flexitable');
-
-      if (!stored_view_model) {
+      if (!view_model.$table.data('Flexitable')) {
         return;
       }
 
