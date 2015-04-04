@@ -41,11 +41,7 @@
       }
 
       if (config.destroy) {
-        viewModel.toggler.destroy()
-          .done(function() {
-            // break ref to viewModel so it's available for garbage collection
-            viewModel = null;
-          });
+        viewModel.toggler.destroy();
       } else if (config.toggle_columns) {
         viewModel.toggler.init();
       }
@@ -119,10 +115,7 @@
           view_model.$table
             .trigger('toggle-destroyed.flexitable')
             .off('.flexitable');
-          // break references to enable garbage collection
           view_model.$toolbar.remove();
-          column_data = null;
-          view_model = null;
         });
 
       function _removePriorityClasses(i, column_data) {
