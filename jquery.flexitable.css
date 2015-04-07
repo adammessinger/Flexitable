@@ -10,8 +10,9 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 	padding-bottom:3em;
 }
 
-.flexitable-menu-closed ul,
-.flexitable-cell-hidden {
+.flexitable-hidden,
+.flexitable-cell-hidden,
+.flexitable-menu-closed ul {
 	display:none !important;
 }
 
@@ -85,6 +86,31 @@ Copyright (c) 2015 Adam Messinger, http://zenscope.com/
 
 .flexitable-menu > button {
 	float: right;
+}
+
+.flexitable-toggle-progress-meter {
+	box-sizing: border-box;
+	text-align: center;
+	padding: 0 0.3em;
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	min-width: 2.5em;
+	background: #008200;
+	color: #fff;
+}
+/* dynamic vertical + horizontal centering w/ CSS3 transform (too bad IE 8) */
+.flexitable-toggle-progress-amt {
+	position: absolute;
+	/* move the top of the amount display down by half the progress meter's height*/
+	top: 50%;
+	/* move left edge half way across meter's width from the meter's left side */
+	left: 50%;
+	/* nudge amount back up by half of its own height, left by half its width */
+	-ms-transform: translate(-50%, -50%); /* for IE 9 */
+	-webkit-transform: translate(-50%, -50%); /* for Safari & Android Browser <= 4.4.4 */
+	transform: translate(-50%, -50%);
 }
 
 .flexitable-menu > ul {
