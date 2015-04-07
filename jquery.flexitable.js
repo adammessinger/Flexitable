@@ -87,46 +87,6 @@
     }
 
 
-    function destroyColumnToggler() {
-      if (!view_model.$table.data('Flexitable')) {
-        return;
-      }
-
-      if (!$menu.hasClass('flexitable-menu-closed')) {
-        _toggleMenuVisibility();
-      }
-      _disableTogglerMenu();
-
-      // unbind click and viewport change listeners related to menu
-      $(window).add(document).off('.flexitable');
-      // remove active class to nix Flexitable media queries
-      view_model.$table.removeClass('flexitable-active');
-
-      // remove media priority classes from cells
-      return $.deferredEach(column_data, _removePriorityClasses)
-        .progress(function(amount_done) {
-          $menu.$button.text(Math.round((1 - amount_done) * 100) + '%');
-        })
-        .then(function() {
-          // remove stored plugin data on the table
-          view_model.$table.removeData('Flexitable');
-          // signal completion, then unbind ALL Flexitable event handlers
-          view_model.$table
-            .trigger('toggle-destroyed.flexitable')
-            .off('.flexitable');
-          view_model.$toolbar.remove();
-        });
-
-      function _removePriorityClasses(i, column_data) {
-        var priority_class = column_data.$th.data('flexitablePriorityClass');
-
-        if (priority_class) {
-          column_data.$cells.removeClass(priority_class);
-        }
-      }
-    }
-
-
     function _setTableId() {
       // Set table ID if not specified
       if (!view_model.id) {
@@ -153,13 +113,7 @@
       if ($headers.length) {
         // NOTE: "deferredEach" plugin is tacked onto the very bottom of this file
         return $.deferredEach($headers, _initCellsByHeader)
-          .progress(function(amount_done) {
-            if (amount_done < 1){
-              $menu.$button.text(Math.round(amount_done * 100) + '%');
-            } else {
-              $menu.$button.text(view_model.cfg.toggle_button_txt);
-            }
-          })
+          .progress(_updateProgressMeter)
           .then(function() {
             // 'flexitable-active' class enables media queries, once above init gives
             // proper classes to cells
@@ -204,39 +158,48 @@
     }
 
 
-    // debounce: from https://github.com/twitter/typeahead.js & http://davidwalsh.name/function-debounce
-    // Returns a function, that, as long as it continues to be invoked, will not
-    // be triggered. The function will be called after it stops being called for
-    // N milliseconds. If 'immediate' is passed, trigger the function on the
-    // leading edge instead of the trailing.
-    function _debounce(func, wait, immediate) {
-      var timeout;
-      var result;
+    function _updateProgressMeter(amount_done, count, length) {
+      var percent_complete = Math.round(amount_done * 100) + '%';
+      var is_beginning = (count === 1);
+      var is_ending = (count === length);
 
-      return function() {
-        var context = this;
-        var args = arguments;
-        var later = function() {
-          timeout = null;
-          if (!immediate) {
-            result = func.apply(context, args);
-          }
-        };
-        var callNow = immediate && !timeout;
+      $menu.$progress_bar.$amount.text(percent_complete);
+      $menu.$progress_bar.css('width', percent_complete);
 
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-        if (callNow) {
-          result = func.apply(context, args);
-        }
-        return result;
-      };
+      if (is_beginning) {
+        _showProgressBar();
+      } else if (is_ending) {
+        _hideProgressBar();
+      }
+
+      function _showProgressBar() {
+        // since the progress bar's 100% height depends on its container having
+        // a specified height, set an inline style to satisfy this even if the
+        // plugin user's styles don't (Flexitable default styles leave height
+        // set to "auto")
+        $menu.$button.height($menu.$button.height());
+        $menu.$progress_bar.removeClass('flexitable-hidden');
+      }
+
+      function _hideProgressBar() {
+        // leave visible long enough for 100% completion to be visible to user,
+        // then hide.
+        setTimeout(function () {
+          // get rid of inline height style
+          $menu.$button.removeAttr('style');
+          $menu.$progress_bar.addClass('flexitable-hidden');
+        }, 250);
+      }
     }
 
 
     function _buildMenuComponents() {
       $menu.$button = $('<button type="button" />').text(view_model.cfg.toggle_button_txt);
       $menu.$list = $('<ul />');
+      $menu.$progress_bar = $('<div class="flexitable-toggle-progress-meter flexitable-hidden" />');
+      $menu.$progress_bar.$amount = $('<span class="flexitable-toggle-progress-amt" />');
+
+      $menu.$button.append($menu.$progress_bar.append($menu.$progress_bar.$amount));
       $menu
         .append($menu.$button)
         .append($menu.$list);
@@ -307,6 +270,77 @@
 
     function _enableTogglerMenu() {
       $menu.$button.prop('disabled', false);
+    }
+
+
+    function destroyColumnToggler() {
+      if (!view_model.$table.data('Flexitable')) {
+        return;
+      }
+
+      if (!$menu.hasClass('flexitable-menu-closed')) {
+        _toggleMenuVisibility();
+      }
+      _disableTogglerMenu();
+
+      // unbind click and viewport change listeners related to menu
+      $(window).add(document).off('.flexitable');
+      // remove active class to nix Flexitable media queries
+      view_model.$table.removeClass('flexitable-active');
+
+      // remove media priority classes from cells
+      return $.deferredEach(column_data, _removePriorityClasses)
+        .progress(function(amount_done, count, length) {
+          // passing (1 - amount_done) to run progress meter backward for destroy
+          _updateProgressMeter((1 - amount_done), count, length);
+        })
+        .then(function() {
+          // remove stored plugin data on the table
+          view_model.$table.removeData('Flexitable');
+          // signal completion, then unbind ALL Flexitable event handlers
+          view_model.$table
+            .trigger('toggle-destroyed.flexitable')
+            .off('.flexitable');
+          view_model.$toolbar.remove();
+        });
+
+      function _removePriorityClasses(i, column_data) {
+        var priority_class = column_data.$th.data('flexitablePriorityClass');
+
+        if (priority_class) {
+          column_data.$cells.removeClass(priority_class);
+        }
+      }
+    }
+
+
+    // debounce: from https://github.com/twitter/typeahead.js & http://davidwalsh.name/function-debounce
+    // Returns a function, that, as long as it continues to be invoked, will not
+    // be triggered. The function will be called after it stops being called for
+    // N milliseconds. If 'immediate' is passed, trigger the function on the
+    // leading edge instead of the trailing.
+    function _debounce(func, wait, immediate) {
+      var timeout;
+      var result;
+
+      return function() {
+        var context = this;
+        var args = arguments;
+        var later = function() {
+          timeout = null;
+          if (!immediate) {
+            result = func.apply(context, args);
+          }
+        };
+        var callNow = immediate && !timeout;
+
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) {
+          result = func.apply(context, args);
+        }
+        return result;
+      };
     }
 
 
@@ -395,7 +429,7 @@
           setTimeout(next, 1);
         }
         child_deferreds[i - 1].resolve();
-        parent_deferred.notify(i / length);
+        parent_deferred.notify((i / length), i, length);
       };
       next();
     } else {
@@ -409,13 +443,15 @@
           setTimeout(next, 1);
         }
         child_deferreds[i - 1].resolve();
-        parent_deferred.notify(i / keys.length);
+        parent_deferred.notify((i / keys.length), i, keys.length);
       };
       next();
     }
 
     $.when.apply(undefined, child_deferreds).then(function() {
-      parent_deferred.notify(1);
+      var notify_length = is_array ? length : keys.length;
+
+      parent_deferred.notify(1, i, notify_length);
       parent_deferred.resolve(collection);
     });
     return parent_deferred.promise();
