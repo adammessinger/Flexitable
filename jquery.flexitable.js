@@ -394,11 +394,11 @@
 
 
     function _updateCheckboxesOnViewportChange() {
-      var i, l, cells_by_column = column_maps_list;
+      var i, l;
 
       // update active state of columns
-      for (i = 0, l = cells_by_column.length; i < l; i++) {
-        cells_by_column[i].is_visible = (cells_by_column[i].$th.css('display') === 'table-cell');
+      for (i = 0, l = column_maps_list.length; i < l; i++) {
+        column_maps_list[i].is_visible = (column_maps_list[i].$th.css('display') === 'table-cell');
       }
       // update all checkboxes
       $menu.$list.find('input').trigger('updateCheck');
