@@ -50,11 +50,11 @@
 
 
   function columnTogglerFactory(view_model, i) {
-    // $menu: will hold toggle menu container, menu, and button
+    // $menu: will hold toggle menu container, menu, button, and progress bar
     var $menu = $('<div class="flexitable-menu flexitable-menu-closed" />');
-    // column_data: will hold an array of column data -- header el, header txt,
-    // cells, visibility, persistence
-    var column_data = [];
+    // column_maps_list: will hold an array of column data objects which track each
+    // column's header element, header txt, cells, visibility, and persistence
+    var column_maps_list = [];
 
     // public methods
     return {
@@ -119,7 +119,7 @@
             // proper classes to cells
             view_model.$table.addClass('flexitable-active');
 
-            if (view_model.cfg.use_toggle_button && column_data.length) {
+            if (view_model.cfg.use_toggle_button && column_maps_list.length) {
               _populateColumnList();
               _initMenuInteractions();
               _enableTogglerMenu();
@@ -147,7 +147,7 @@
         }
       }
 
-      column_data[index] = {
+      column_maps_list[index] = {
         // NOTE: we're using the th's visibility as a proxy for the column's
         is_visible: ($header.css('display') === 'table-cell'),
         $th: $header,
@@ -216,8 +216,8 @@
       }
 
       // populate with checkboxes for each non-persistent column
-      for (i = 0, l = column_data.length; i < l; i++) {
-        if (!column_data[i].is_persistent_col) {
+      for (i = 0, l = column_maps_list.length; i < l; i++) {
+        if (!column_maps_list[i].is_persistent_col) {
           $this_checkbox = $('<input />', {
             type: 'checkbox',
             name: 'toggle-cols',
@@ -225,11 +225,11 @@
             value: i,
             'data-flexitable-id': view_model.id
           });
-          $this_checkbox.prop('checked', column_data[i].is_visible);
+          $this_checkbox.prop('checked', column_maps_list[i].is_visible);
 
           $this_label = $('<label />', {
             'for': (checkbox_id_pfx + i),
-            text: column_data[i].heading_text
+            text: column_maps_list[i].heading_text
           });
 
           li_cache.push($('<li />').append($this_checkbox).append($this_label))
@@ -289,7 +289,7 @@
       view_model.$table.removeClass('flexitable-active');
 
       // remove media priority classes from cells
-      return $.deferredEach(column_data, _removePriorityClasses)
+      return $.deferredEach(column_maps_list, _removePriorityClasses)
         .progress(function(amount_done, count, length) {
           // passing (1 - amount_done) to run progress meter backward for destroy
           _updateProgressMeter((1 - amount_done), count, length);
@@ -372,29 +372,29 @@
 
     function _toggleColumn(event) {
       var checkbox = event.target;
-      // NOTE: checkbox value is the same as column index from column_data
+      // NOTE: checkbox value is the same as column index from column_maps_list
       var i_col = parseInt(checkbox.value, 10);
 
-      column_data[i_col].$cells
+      column_maps_list[i_col].$cells
         .toggleClass('flexitable-cell-shown', checkbox.checked)
         .toggleClass('flexitable-cell-hidden', !checkbox.checked);
 
       // update column's active state
-      column_data[i_col].is_visible = checkbox.checked;
+      column_maps_list[i_col].is_visible = checkbox.checked;
     }
 
 
     function _updateMenuCheckbox(event) {
       var checkbox = event.target;
-      // NOTE: checkbox value is the same as column index from column_data
+      // NOTE: checkbox value is the same as column index from column_maps_list
       var i_col = parseInt(checkbox.value, 10);
 
-      checkbox.checked = column_data[i_col].is_visible;
+      checkbox.checked = column_maps_list[i_col].is_visible;
     }
 
 
     function _updateCheckboxesOnViewportChange() {
-      var i, l, cells_by_column = column_data;
+      var i, l, cells_by_column = column_maps_list;
 
       // update active state of columns
       for (i = 0, l = cells_by_column.length; i < l; i++) {
