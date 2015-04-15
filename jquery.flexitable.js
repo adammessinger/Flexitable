@@ -122,6 +122,7 @@
             if (view_model.cfg.use_toggle_button && column_maps_list.length) {
               _populateColumnList();
               _initMenuInteractions();
+              _updateCheckboxesFromColumnVisibility();
               _enableTogglerMenu();
             }
 
@@ -351,7 +352,8 @@
         .on('updateCheck', 'input[name="toggle-cols"]', _updateMenuCheckbox);
 
       // Update checkbox status on viewport changes.
-      $(window).on('orientationchange.flexitable resize.flexitable', _debounce(_updateCheckboxesOnViewportChange, 500));
+      $(window).on('orientationchange.flexitable resize.flexitable',
+        _debounce(_updateCheckboxesFromColumnVisibility, 500));
 
       // Close menu when user clicks anywhere outside the menu.
       $(document).on('click.flexitable', _closeMenuOnOutsideClick);
@@ -393,7 +395,7 @@
     }
 
 
-    function _updateCheckboxesOnViewportChange() {
+    function _updateCheckboxesFromColumnVisibility() {
       var i, l;
 
       // update active state of columns
