@@ -347,10 +347,9 @@
     function _initMenuInteractions() {
       $menu
         .on('click', 'button', _toggleMenuVisibility)
-        .on('change', 'input[name="toggle-cols"]', _toggleColumn)
-        .on('updateCheck', 'input[name="toggle-cols"]', _updateMenuCheckbox);
+        .on('change', 'input[name="toggle-cols"]', _toggleColumn);
 
-      // Update checkbox status on viewport changes.
+      // Update checkboxes on viewport changes, no more than once every 1/2 second.
       $(window).on('orientationchange.flexitable resize.flexitable',
         _debounce(_updateCheckboxesFromColumnVisibility, 500));
 
@@ -380,29 +379,33 @@
         .toggleClass('flexitable-cell-shown', checkbox.checked)
         .toggleClass('flexitable-cell-hidden', !checkbox.checked);
 
-      // update column's active state
       column_maps_list[i_col].is_visible = checkbox.checked;
     }
 
 
-    function _updateMenuCheckbox(event) {
-      var checkbox = event.target;
+    function _toggleMenuCheckbox(col_index, is_checked) {
       // NOTE: checkbox value is the same as column index from column_maps_list
-      var i_col = parseInt(checkbox.value, 10);
+      var checkbox = $menu.$list.find('input[value=' + col_index + ']')[0];
 
-      checkbox.checked = column_maps_list[i_col].is_visible;
+      if (checkbox) {
+        checkbox.checked = is_checked;
+      } else {
+        throw new Error('_toggleMenuCheckbox: checkbox not found');
+      }
     }
 
 
     function _updateCheckboxesFromColumnVisibility() {
-      var i, l;
+      var i, l, old_vis_state;
 
-      // update active state of columns
       for (i = 0, l = column_maps_list.length; i < l; i++) {
+        old_vis_state = column_maps_list[i].is_visible;
         column_maps_list[i].is_visible = (column_maps_list[i].$th.css('display') === 'table-cell');
+
+        if (old_vis_state !== column_maps_list[i].is_visible) {
+          _toggleMenuCheckbox(i, column_maps_list[i].is_visible);
+        }
       }
-      // update all checkboxes
-      $menu.$list.find('input').trigger('updateCheck');
     }
   }
 })(jQuery);
