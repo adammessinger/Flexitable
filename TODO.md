@@ -9,4 +9,6 @@
       that something is, in fact, happening during the slow show/hide for very
       big tables. Already tried this with dimming/un-dimming table but the
       appearance change was too slow on a large table to be visible.
+* [ ] Keep track of CSS selectors in a module-scope map object, so there's only
+      one place to find and change them.
 * [ ] table search/filter, if it can be made fast enough
