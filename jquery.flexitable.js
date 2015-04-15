@@ -116,9 +116,7 @@
         return $.deferredEach($headers, _initCellsByHeader)
           .progress(_updateProgressMeter)
           .then(function() {
-            // 'flexitable-active' class enables media queries, once above init gives
-            // proper classes to cells
-            view_model.$table.addClass('flexitable-active');
+            _toggleResponsiveMediaQueries(true);
 
             if (view_model.cfg.use_toggle_button && column_maps_list.length) {
               _populateColumnList();
@@ -285,10 +283,10 @@
       }
       _disableTogglerMenu();
 
+      _toggleResponsiveMediaQueries(false);
+
       // unbind click and viewport change listeners related to menu
       $(window).add(document).off('.flexitable');
-      // remove active class to nix Flexitable media queries
-      view_model.$table.removeClass('flexitable-active');
 
       // remove media priority classes from cells
       return $.deferredEach(column_maps_list, _removePriorityClasses)
@@ -297,13 +295,13 @@
           _updateProgressMeter((1 - amount_done), count, length);
         })
         .then(function() {
+          view_model.$toolbar.remove();
           // remove stored plugin data on the table
           view_model.$table.removeData('Flexitable');
           // signal completion, then unbind ALL Flexitable event handlers
           view_model.$table
             .trigger('toggle-destroyed.flexitable')
             .off('.flexitable');
-          view_model.$toolbar.remove();
         });
 
       function _removePriorityClasses(i, column_data) {
@@ -394,6 +392,11 @@
       } else {
         throw new Error('_toggleMenuCheckbox: checkbox not found');
       }
+    }
+
+
+    function _toggleResponsiveMediaQueries(will_activate) {
+      view_model.$table.toggleClass('flexitable-active', will_activate);
     }
 
 
