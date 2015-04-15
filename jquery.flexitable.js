@@ -370,13 +370,6 @@
     }
 
 
-    function _closeMenuOnOutsideClick(event) {
-      if (!$menu.find(event.target).length) {
-        _toggleMenuVisibility(false);
-      }
-    }
-
-
     function _toggleColumnVisibility(col_index, will_show) {
       col_index = parseInt(col_index, 10);
       will_show = Boolean(will_show);
@@ -415,6 +408,13 @@
         if (old_vis_state !== column_maps_list[i].is_visible) {
           _toggleMenuCheckbox(i, column_maps_list[i].is_visible);
         }
+      }
+    }
+
+
+    function _closeMenuOnOutsideClick(event) {
+      if (!$menu.find(event.target).length) {
+        _toggleMenuVisibility(false);
       }
     }
   }
