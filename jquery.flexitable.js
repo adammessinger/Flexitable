@@ -359,7 +359,6 @@
       $(window).on('orientationchange.flexitable resize.flexitable',
         _debounce(_updateCheckboxesFromColumnVisibility, 500));
 
-      // Close menu when user clicks anywhere outside the menu.
       $(document).on('click.flexitable', _closeMenuOnOutsideClick);
     }
 
