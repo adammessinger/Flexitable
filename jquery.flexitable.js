@@ -347,7 +347,9 @@
     function _initMenuInteractions() {
       $menu
         .on('click', 'button', _toggleMenuVisibility)
-        .on('change', 'input[name="toggle-cols"]', _toggleColumn);
+        .on('change', 'input[name="toggle-cols"]', function(event) {
+          _toggleColumnVisibility(event.target.value, event.target.checked);
+        });
 
       // Update checkboxes on viewport changes, no more than once every 1/2 second.
       $(window).on('orientationchange.flexitable resize.flexitable',
@@ -370,16 +372,19 @@
     }
 
 
-    function _toggleColumn(event) {
-      var checkbox = event.target;
-      // NOTE: checkbox value is the same as column index from column_maps_list
-      var i_col = parseInt(checkbox.value, 10);
+    function _toggleColumnVisibility(col_index, is_visible) {
+      col_index = parseInt(col_index, 10);
+      is_visible = Boolean(is_visible);
 
-      column_maps_list[i_col].$cells
-        .toggleClass('flexitable-cell-shown', checkbox.checked)
-        .toggleClass('flexitable-cell-hidden', !checkbox.checked);
+      if (isNaN(col_index)) {
+        throw new Error('_toggleColumnVisibility: col_index arg is missing or a non-number');
+      }
 
-      column_maps_list[i_col].is_visible = checkbox.checked;
+      column_maps_list[col_index].$cells
+        .toggleClass('flexitable-cell-shown', is_visible)
+        .toggleClass('flexitable-cell-hidden', !is_visible);
+
+      column_maps_list[col_index].is_visible = is_visible;
     }
 
 
