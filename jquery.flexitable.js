@@ -386,6 +386,7 @@
     function _toggleMenuCheckbox(col_index, will_check) {
       // NOTE: checkbox value is the same as column index from column_maps_list
       var checkbox = $menu.$list.find('input[value=' + col_index + ']')[0];
+      will_check = Boolean(will_check);
 
       if (checkbox) {
         checkbox.checked = will_check;
@@ -396,6 +397,7 @@
 
 
     function _toggleResponsiveMediaQueries(will_activate) {
+      will_activate = Boolean(will_activate);
       view_model.$table.toggleClass('flexitable-active', will_activate);
     }
 
