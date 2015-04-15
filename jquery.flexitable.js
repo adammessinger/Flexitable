@@ -78,7 +78,9 @@
         $menu.$button.one('click', function() {
           _disableTogglerMenu();
           _initTogglerButton()
-            .done(_toggleMenuVisibility);
+            .done(function() {
+              _toggleMenuVisibility(true);
+            });
         });
       } else {
         _initTogglerButton();
@@ -279,7 +281,7 @@
       }
 
       if (!$menu.hasClass('flexitable-menu-closed')) {
-        _toggleMenuVisibility();
+        _toggleMenuVisibility(false);
       }
       _disableTogglerMenu();
 
@@ -346,7 +348,9 @@
 
     function _initMenuInteractions() {
       $menu
-        .on('click', 'button', _toggleMenuVisibility)
+        .on('click', 'button', function() {
+          _toggleMenuVisibility($menu.hasClass('flexitable-menu-closed'));
+        })
         .on('change', 'input[name="toggle-cols"]', function(event) {
           _toggleColumnVisibility(event.target.value, event.target.checked);
         });
@@ -360,40 +364,41 @@
     }
 
 
-    function _toggleMenuVisibility() {
-      $menu.toggleClass('flexitable-menu-closed');
+    function _toggleMenuVisibility(will_show) {
+      will_show = Boolean(will_show);
+      $menu.toggleClass('flexitable-menu-closed', !will_show);
     }
 
 
     function _closeMenuOnOutsideClick(event) {
       if (!$menu.find(event.target).length) {
-        $menu.addClass('flexitable-menu-closed');
+        _toggleMenuVisibility(false);
       }
     }
 
 
-    function _toggleColumnVisibility(col_index, is_visible) {
+    function _toggleColumnVisibility(col_index, will_show) {
       col_index = parseInt(col_index, 10);
-      is_visible = Boolean(is_visible);
+      will_show = Boolean(will_show);
 
       if (isNaN(col_index)) {
         throw new Error('_toggleColumnVisibility: col_index arg is missing or a non-number');
       }
 
       column_maps_list[col_index].$cells
-        .toggleClass('flexitable-cell-shown', is_visible)
-        .toggleClass('flexitable-cell-hidden', !is_visible);
+        .toggleClass('flexitable-cell-shown', will_show)
+        .toggleClass('flexitable-cell-hidden', !will_show);
 
-      column_maps_list[col_index].is_visible = is_visible;
+      column_maps_list[col_index].is_visible = will_show;
     }
 
 
-    function _toggleMenuCheckbox(col_index, is_checked) {
+    function _toggleMenuCheckbox(col_index, will_check) {
       // NOTE: checkbox value is the same as column index from column_maps_list
       var checkbox = $menu.$list.find('input[value=' + col_index + ']')[0];
 
       if (checkbox) {
-        checkbox.checked = is_checked;
+        checkbox.checked = will_check;
       } else {
         throw new Error('_toggleMenuCheckbox: checkbox not found');
       }
