@@ -374,6 +374,9 @@
       if (isNaN(col_index)) {
         throw new Error('_toggleColumnVisibility: col_index arg is missing or a non-number');
       }
+      if (column_maps_list[col_index] === undefined) {
+        throw new Error('_toggleColumnVisibility: col_index arg refers to a non-existent column');
+      }
 
       column_maps_list[col_index].$cells
         .toggleClass('flexitable-cell-shown', will_show)
