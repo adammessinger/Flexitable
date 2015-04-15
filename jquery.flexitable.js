@@ -77,9 +77,8 @@
       if (is_lazy_init) {
         $menu.$button.one('click', function() {
           _disableTogglerMenu();
-          _initTogglerButton().done(function() {
-            _toggleMenuVisibility();
-          });
+          _initTogglerButton()
+            .done(_toggleMenuVisibility);
         });
       } else {
         _initTogglerButton();
