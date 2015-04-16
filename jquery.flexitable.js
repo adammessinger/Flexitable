@@ -183,13 +183,9 @@
       }
 
       function _hideProgressBar() {
-        // leave visible long enough for 100% completion to be visible to user,
-        // then hide.
-        setTimeout(function () {
-          $menu.$progress_bar.addClass('flexitable-hidden');
-          // get rid of inline height style
-          $menu.$button.removeAttr('style');
-        }, 250);
+        $menu.$progress_bar.addClass('flexitable-hidden');
+        // get rid of inline height style
+        $menu.$button.removeAttr('style');
       }
     }
 
