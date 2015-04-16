@@ -12,6 +12,7 @@
 * [ ] Keep track of CSS selectors in a module-scope map object, so there's only
       one place to find and change them.
 * [ ] table search/filter, if it can be made fast enough
-* [ ] Option to save column visibility state using `localStorage` (issue #1).
+* [ ] Option to save column visibility state using `localStorage` 
+      ([issue #1](https://github.com/adammessinger/Flexitable/issues/1)).
       Makes sense to save only the column states explicitly chosen by the user
       checking/unchecking a box.
