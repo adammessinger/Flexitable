@@ -104,6 +104,7 @@
           _disableTogglerMenu();
         }
         _insertMenu();
+        view_model.$table.trigger('toggle-button-placed.flexitable');
       }
     }
 
