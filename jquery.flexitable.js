@@ -104,7 +104,7 @@
           _disableTogglerMenu();
         }
         _insertMenu();
-        view_model.$table.trigger('toggle-button-placed.flexitable');
+        view_model.$table.trigger('toggle-menu-placed.flexitable', [$menu, view_model.$toolbar]);
       }
     }
 
