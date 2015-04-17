@@ -246,6 +246,11 @@
         // Add a class to the toolbar to inform about menu presence & style accordingly
         .addClass('flexitable-toolbar-has-widgets');
 
+      // NOTE: Both appending the menu and adding the class above will silently
+      // fail if they've been done before (e.g. on refresh, a pending feature).
+      // However, actually adding the toolbar to the page (below) is something
+      // we don't want to bother with if it's already been taken care of by the
+      // search module (another pending feature).
       if (!view_model.$toolbar.is_inserted) {
         placement_method = view_model.cfg.toolbar_before_or_after.toLowerCase() === 'after'
           ? 'insertAfter'
