@@ -11,6 +11,10 @@
       appearance change was too slow on a large table to be visible.
 * [ ] Keep track of CSS selectors in a module-scope map object, so there's only
       one place to find and change them.
+* [ ] Consider refactoring to use smaller objects instead of one monolithic 
+      columnTogglerFactory. The factory function's role would then be composing
+      these smaller objects (for toggle menu, toolbar, table) and returning some
+      methods to attach to the view-model.
 * [ ] table search/filter, if it can be made fast enough
 * [ ] Option to save column visibility state using `localStorage` 
       ([issue #1](https://github.com/adammessinger/Flexitable/issues/1)).
