@@ -1,6 +1,9 @@
 #To-Do List
 
-* [ ] `refresh` method to re-init cells by column without rebuilding and re-placing
+* [ ] Lazy caching of column cells in `column_maps_list[i].$cells` -- Leave `null`
+      to start with, then query & cache when checked/unchecked in menu. Will make
+      init even faster on large tables.
+* [ ] `refresh` method to re-init columns without rebuilding and re-placing
       toggle menu. Useful for tables that have been rebuilt due to some ajax
       operation, but still have the same columns.
 * [ ] table search/filter, if it can be made fast enough
