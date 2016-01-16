@@ -1,8 +1,5 @@
 #To-Do List
 
-* [ ] Lazy caching of column cells in `column_maps_list[i].$cells` -- Leave `null`
-      to start with, then query & cache when checked/unchecked in menu. Will make
-      init even faster on large tables.
 * [ ] `refresh` method to re-init columns without rebuilding and re-placing
       toggle menu. Useful for tables that have been rebuilt due to some ajax
       operation, but still have the same columns.
@@ -24,3 +21,13 @@
 * [ ] Keep track of CSS selectors in a module-scope map object, so there's only
       one place to find and change them.
 * [ ] Complete README file
+* [ ] Consider lazy caching of column cells in `column_maps_list[i].$cells` -- 
+      leave `null` to start with, then query & cache when checked/unchecked in
+      menu. Preliminary tests show that this would reduce by more than half the
+      time needed to iterate over a table's columns, populate `column_maps_list`,
+      and build the columns menu. However, it would require rethinking the plugin's
+      responsive features. Showing and hiding columns based on cell classes added
+      with JS wouldn't work anymore. Perhaps it could be an option, the enabling
+      of which disables responsive features? Since the improvement is only truly
+      noticeable with huge tables (thousands of rows, > tens of thousands of cells),
+      punting on this for now as an edge-case enhancement.
