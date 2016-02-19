@@ -21,6 +21,7 @@
         use_toggle_button: true,
         toggle_button_txt: 'Columns:',
         init_toggle_on_button_click: false,
+        lazy_column_caching: false,
         // NOTE: toolbar_position_target takes a CSS selector, DOM element, or
         // jQuery collection
         toolbar_position_target: $table,
@@ -64,8 +65,8 @@
 
 
     function initColumnToggler() {
-      var is_lazy_init = view_model.cfg.use_toggle_button && view_model.cfg.init_toggle_on_button_click;
-      var insert_button_disabled = !is_lazy_init;
+      var has_lazy_init = view_model.cfg.use_toggle_button && view_model.cfg.init_toggle_on_button_click;
+      var insert_button_disabled = !has_lazy_init;
 
       // Prevent re-initialization
       if (view_model.$table.data('Flexitable')) {
@@ -74,7 +75,7 @@
 
       _setTableId();
       _insertTogglerButton(insert_button_disabled);
-      if (is_lazy_init) {
+      if (has_lazy_init) {
         $menu.$button.one('click', function() {
           _disableTogglerMenu();
           _initTogglerButton()
@@ -111,13 +112,17 @@
 
     function _initTogglerButton() {
       var $headers = view_model.$table.find('> thead th');
+      // if either of these options is on, responsive table columns feature is disabled
+      var can_use_responsive_cols = (!view_model.cfg.lazy_column_caching && !view_model.cfg.init_toggle_on_button_click);
 
       if ($headers.length) {
         // NOTE: "deferredEach" plugin is tacked onto the very bottom of this file
         return $.deferredEach($headers, _initCellsByHeader)
           .progress(_updateProgressMeter)
           .then(function() {
-            _toggleResponsiveMediaQueries(true);
+            if (can_use_responsive_cols) {
+              _toggleResponsiveMediaQueries(true);
+            }
 
             if (view_model.cfg.use_toggle_button && column_maps_list.length) {
               _populateColumnList();
@@ -133,19 +138,30 @@
     }
 
 
-    function _initCellsByHeader(index, header) {
+    function _initCellsByHeader(index, header, is_lazy_cache_store) {
       var $header = $(header);
       var priority_class = $header.data('flexitablePriorityClass');
+      var has_lazy_col_cache = view_model.cfg.lazy_column_caching;
       // NOTE: cell_num is used for nth-child selectors, which aren't 0-indexed
       var cell_num = index + 1;
-      var $col_cells = view_model.$table.find('> thead th:nth-child(' + cell_num + '), > tbody td:nth-child(' + cell_num + ')');
+      var $col_cells = (has_lazy_col_cache && !is_lazy_cache_store)
+        ? null
+        : view_model.$table.find('> thead th:nth-child(' + cell_num + '), > tbody td:nth-child(' + cell_num + ')');
       // cell loop vars:
       var i, l;
 
-      if (priority_class) {
+      if (is_lazy_cache_store) {
+        column_maps_list[index].$cells = $col_cells;
+        return;
+      }
+
+      // if lazy column caching on, responsive columns are off (but we still care about "persist")
+      if (priority_class && !has_lazy_col_cache) {
         for (i = 0, l = $col_cells.length; i < l; i++) {
           $col_cells[i].className += (' ' + priority_class);
         }
+      } else if (priority_class === 'persist') {
+        $header[0].className += (' ' + priority_class);
       }
 
       column_maps_list[index] = {
@@ -308,9 +324,10 @@
 
       function _removePriorityClasses(i, column_data) {
         var priority_class = column_data.$th.data('flexitablePriorityClass');
+        var $target = view_model.cfg.lazy_column_caching ? column_data.$th : column_data.$cells;
 
         if (priority_class) {
-          column_data.$cells.removeClass(priority_class);
+          $target.removeClass(priority_class);
         }
       }
     }
@@ -378,6 +395,10 @@
       }
       if (column_maps_list[col_index] === undefined) {
         throw new Error('_toggleColumnVisibility: col_index arg refers to a non-existent column');
+      }
+
+      if (view_model.cfg.lazy_column_caching && !column_maps_list[col_index].$cells) {
+        _initCellsByHeader(col_index, column_maps_list[col_index].$th[0], true);
       }
 
       column_maps_list[col_index].$cells
