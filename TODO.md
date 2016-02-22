@@ -34,7 +34,7 @@
 * [ ] Keep track of CSS selectors in a module-scope map object, so there's only
       one place to find and change them.
 * [ ] Complete README file
-* [ ] Consider lazy caching of column cells in `column_maps_list[i].$cells` -- 
+* [x] Lazy caching of column cells in `column_maps_list[i].$cells` -- 
       leave `null` to start with, then query & cache when checked/unchecked in
       menu. Preliminary tests show that this would reduce by more than half the
       time needed to iterate over a table's columns, populate `column_maps_list`,
