@@ -11,8 +11,21 @@
       code reuse for search/filter easier if we go that route.
 * [ ] Option to save column visibility state using `localStorage` 
       ([issue #1](https://github.com/adammessinger/Flexitable/issues/1)).
-      Makes sense to save only the column states explicitly chosen by the user
-      checking/unchecking a box.
+      * Save table's column states when user checks/unchecks a column box.
+      * Keep it compact and simple: array of columns such that keys match 
+        `column_maps_list`, with values of `0` for hidden or `1` for shown.
+      * [Some `localStorage` issues to keep in mind](http://htmlui.com/blog/2011-08-23-5-obscure-facts-about-html5-localstorage.html).
+      * Need to give some thought to storage keys. Simply using the table ID 
+        could cause data over-writes and unexpected behavior if the plugin  user 
+        has multiple tables with the same ID. Something like this would work as 
+        long as there are no tables with matching IDs at the same URL:
+        `'flexitable_[' + window.location.href + ']_' + view_model.id`
+      * [Be mindful of storage quotas](http://www.raymondcamden.com/2015/04/14/blowing-up-localstorage-or-what-happens-when-you-exceed-quota/).
+        As a product or site using Flexitable evolves, tables and whole pages may
+        disappear or table IDs may change. Orphaned keys may bloat storage, and 
+        there's a slim chance of exceeding quota. [Handle the resulting error](http://www.html5rocks.com/en/tutorials/offline/quota-research/#tos-localstorage) 
+        (and the lack thereof in IE) gracefully, perhaps by (silently?) clearing
+        all Flexitable storage for that domain and then retrying the save.
 * [ ] Some kind of "processing" indicator that's shown after column checkbox
       clicked and hidden after the class changes are done. Gives visual feedback
       that something is, in fact, happening during the slow show/hide for very
