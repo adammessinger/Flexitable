@@ -56,6 +56,10 @@
     // column_maps_list: will hold an array of column data objects which track each
     // column's header element, header txt, cells, visibility, and persistence
     var column_maps_list = [];
+    // TODO: consider collecting next 3 vars in a cfg_inferences object
+    var has_lazy_init = (view_model.cfg.use_toggle_button && view_model.cfg.init_toggle_on_button_click);
+    var has_lazy_col_cache = (view_model.cfg.use_toggle_button && view_model.cfg.lazy_column_caching);
+    var can_use_responsive_cols = (!has_lazy_init && !has_lazy_col_cache);
 
     // public methods
     return {
@@ -65,8 +69,7 @@
 
 
     function initColumnToggler() {
-      var has_lazy_init = view_model.cfg.use_toggle_button && view_model.cfg.init_toggle_on_button_click;
-      var insert_button_disabled = !has_lazy_init;
+      var is_button_inserted_disabled = !has_lazy_init;
 
       // Prevent re-initialization
       if (view_model.$table.data('Flexitable')) {
@@ -74,7 +77,7 @@
       }
 
       _setTableId();
-      _insertTogglerButton(insert_button_disabled);
+      _insertTogglerButton(is_button_inserted_disabled);
       if (has_lazy_init) {
         $menu.$button.one('click', function() {
           _disableTogglerMenu();
@@ -112,8 +115,6 @@
 
     function _initTogglerButton() {
       var $headers = view_model.$table.find('> thead th');
-      // if either of these options is on, responsive table columns feature is disabled
-      var can_use_responsive_cols = (!view_model.cfg.lazy_column_caching && !view_model.cfg.init_toggle_on_button_click);
 
       if ($headers.length) {
         // NOTE: "deferredEach" plugin is tacked onto the very bottom of this file
@@ -141,7 +142,6 @@
     function _initCellsByHeader(index, header, is_lazy_cache_store) {
       var $header = $(header);
       var priority_class = $header.data('flexitablePriorityClass');
-      var has_lazy_col_cache = view_model.cfg.lazy_column_caching;
       // NOTE: cell_num is used for nth-child selectors, which aren't 0-indexed
       var cell_num = index + 1;
       var $col_cells = (has_lazy_col_cache && !is_lazy_cache_store)
@@ -155,13 +155,11 @@
         return;
       }
 
-      // if lazy column caching on, responsive columns are off (but we still care about "persist")
-      if (priority_class && !has_lazy_col_cache) {
+      // if responsive columns are available, propagate priority classes to cells in column
+      if (priority_class && can_use_responsive_cols) {
         for (i = 0, l = $col_cells.length; i < l; i++) {
           $col_cells[i].className += (' ' + priority_class);
         }
-      } else if (priority_class === 'persist') {
-        $header[0].className += (' ' + priority_class);
       }
 
       column_maps_list[index] = {
@@ -169,7 +167,7 @@
         is_visible: ($header.css('display') === 'table-cell'),
         $th: $header,
         heading_text: $header.text(),
-        is_persistent_col: $header.hasClass('persist'),
+        is_persistent_col: (priority_class === 'persist'),
         $cells: $col_cells
       };
     }
@@ -323,10 +321,14 @@
         });
 
       function _removePriorityClasses(i, column_data) {
-        var priority_class = column_data.$th.data('flexitablePriorityClass');
-        var $target = view_model.cfg.lazy_column_caching ? column_data.$th : column_data.$cells;
+        // NOTE: Function does nothing if lazy init or lazy column caching is on,
+        // both of which disable responsive design features.
+        var priority_class = can_use_responsive_cols
+          ? column_data.$th.data('flexitablePriorityClass')
+          : null;
+        var $target = column_data.$cells;
 
-        if (priority_class) {
+        if (priority_class && $target && $target.length) {
           $target.removeClass(priority_class);
         }
       }
@@ -397,7 +399,7 @@
         throw new Error('_toggleColumnVisibility: col_index arg refers to a non-existent column');
       }
 
-      if (view_model.cfg.lazy_column_caching && !column_maps_list[col_index].$cells) {
+      if (has_lazy_col_cache && !column_maps_list[col_index].$cells) {
         _initCellsByHeader(col_index, column_maps_list[col_index].$th[0], true);
       }
 
