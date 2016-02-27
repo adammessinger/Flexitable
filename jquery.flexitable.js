@@ -56,10 +56,11 @@
     // column_maps_list: will hold an array of column data objects which track each
     // column's header element, header txt, cells, visibility, and persistence
     var column_maps_list = [];
-    // TODO: consider collecting next 3 vars in a cfg_inferences object
-    var has_lazy_init = (view_model.cfg.use_toggle_button && view_model.cfg.init_toggle_on_button_click);
-    var has_lazy_col_cache = (view_model.cfg.use_toggle_button && view_model.cfg.lazy_column_caching);
-    var can_use_responsive_cols = (!has_lazy_init && !has_lazy_col_cache);
+    var cfg_inferences = {
+      lazy_init: (view_model.cfg.use_toggle_button && view_model.cfg.init_toggle_on_button_click),
+      lazy_col_cache: (view_model.cfg.use_toggle_button && view_model.cfg.lazy_column_caching)
+    };
+    cfg_inferences.responsive = (!cfg_inferences.lazy_init && !cfg_inferences.lazy_col_cache);
 
     // public methods
     return {
@@ -69,7 +70,7 @@
 
 
     function initColumnToggler() {
-      var is_button_inserted_disabled = !has_lazy_init;
+      var is_button_inserted_disabled = !cfg_inferences.lazy_init;
 
       // Prevent re-initialization
       if (view_model.$table.data('Flexitable')) {
@@ -78,7 +79,7 @@
 
       _setTableId();
       _insertTogglerButton(is_button_inserted_disabled);
-      if (has_lazy_init) {
+      if (cfg_inferences.lazy_init) {
         $menu.$button.one('click', function() {
           _disableTogglerMenu();
           _initTogglerButton()
@@ -121,7 +122,7 @@
         return $.deferredEach($headers, _initCellsByHeader)
           .progress(_updateProgressMeter)
           .then(function() {
-            if (can_use_responsive_cols) {
+            if (cfg_inferences.responsive) {
               _toggleResponsiveMediaQueries(true);
             }
 
@@ -144,7 +145,7 @@
       var priority_class = $header.data('flexitablePriorityClass');
       // NOTE: cell_num is used for nth-child selectors, which aren't 0-indexed
       var cell_num = index + 1;
-      var $col_cells = (has_lazy_col_cache && !is_lazy_cache_store)
+      var $col_cells = (cfg_inferences.lazy_col_cache && !is_lazy_cache_store)
         ? null
         : view_model.$table.find('> thead th:nth-child(' + cell_num + '), > tbody td:nth-child(' + cell_num + ')');
       // cell loop vars:
@@ -156,7 +157,7 @@
       }
 
       // if responsive columns are available, propagate priority classes to cells in column
-      if (priority_class && can_use_responsive_cols) {
+      if (priority_class && cfg_inferences.responsive) {
         for (i = 0, l = $col_cells.length; i < l; i++) {
           $col_cells[i].className += (' ' + priority_class);
         }
@@ -323,7 +324,7 @@
       function _removePriorityClasses(i, column_data) {
         // NOTE: Function does nothing if lazy init or lazy column caching is on,
         // both of which disable responsive design features.
-        var priority_class = can_use_responsive_cols
+        var priority_class = cfg_inferences.responsive
           ? column_data.$th.data('flexitablePriorityClass')
           : null;
         var $target = column_data.$cells;
@@ -399,7 +400,7 @@
         throw new Error('_toggleColumnVisibility: col_index arg refers to a non-existent column');
       }
 
-      if (has_lazy_col_cache && !column_maps_list[col_index].$cells) {
+      if (cfg_inferences.lazy_col_cache && !column_maps_list[col_index].$cells) {
         _initCellsByHeader(col_index, column_maps_list[col_index].$th[0], true);
       }
 
