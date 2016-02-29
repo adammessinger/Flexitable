@@ -175,6 +175,10 @@
 
 
     function _updateProgressMeter(amount_done, count, length) {
+      if (!view_model.cfg.use_toggle_button) {
+        return;
+      }
+
       var percent_complete = Math.round(amount_done * 100) + '%';
       var is_beginning = (count === 1);
       var is_ending = (count === length);
@@ -295,10 +299,12 @@
         return;
       }
 
-      if (!$menu.hasClass('flexitable-menu-closed')) {
-        _toggleMenuVisibility(false);
+      if (view_model.cfg.use_toggle_button) {
+        if (!$menu.hasClass('flexitable-menu-closed')) {
+          _toggleMenuVisibility(false);
+        }
+        _disableTogglerMenu();
       }
-      _disableTogglerMenu();
 
       _toggleResponsiveMediaQueries(false);
 
