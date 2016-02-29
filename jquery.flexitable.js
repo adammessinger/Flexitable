@@ -312,7 +312,7 @@
       $(window).add(document).off('.flexitable');
 
       // remove media priority classes from cells
-      return $.deferredEach(column_maps_list, _removePriorityClasses)
+      return $.deferredEach(column_maps_list, _removeFlexitableClasses)
         .progress(function(amount_done, count, length) {
           // passing (1 - amount_done) to run progress meter backward for destroy
           _updateProgressMeter((1 - amount_done), count, length);
@@ -327,16 +327,25 @@
             .off('.flexitable');
         });
 
-      function _removePriorityClasses(i, column_data) {
-        // NOTE: Function does nothing if lazy init or lazy column caching is on,
-        // both of which disable responsive design features.
+      function _removeFlexitableClasses(i, column_data) {
+        // NOTE: Function removes priority classes if responsive design features
+        // are available (lazy init and lazy column caching are off), and always
+        // removes "show" and "hide" classes.
         var priority_class = cfg_inferences.responsive
           ? column_data.$th.data('flexitablePriorityClass')
           : null;
-        var $target = column_data.$cells;
+        var $column_cells = column_data.$cells;
+        var classes;
+        var filter_selector;
 
-        if (priority_class && $target && $target.length) {
-          $target.removeClass(priority_class);
+        classes = priority_class ? (priority_class + ' ') : '';
+        classes += 'flexitable-cell-hidden flexitable-cell-shown';
+        filter_selector = '.' + classes.split(' ').join(', .');
+
+        if ($column_cells && $column_cells.length) {
+          $column_cells
+            .filter(filter_selector)
+            .removeClass(classes);
         }
       }
     }
