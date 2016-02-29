@@ -244,7 +244,7 @@
             text: column_maps_list[i].heading_text
           });
 
-          li_cache.push($('<li />').append($this_checkbox).append($this_label))
+          li_cache.push($('<li />').append($this_checkbox).append($this_label));
         }
       }
 
