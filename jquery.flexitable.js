@@ -80,6 +80,7 @@
       _setTableId();
       _insertTogglerButton(is_button_inserted_disabled);
       if (cfg_inferences.lazy_init) {
+        view_model.$table.data('Flexitable', view_model);
         $menu.$button.one('click', function() {
           _disableTogglerMenu();
           _initTogglerButton()
