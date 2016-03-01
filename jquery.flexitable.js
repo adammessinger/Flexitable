@@ -1,7 +1,7 @@
 /**
  Flexitable jQuery plugin
  https://github.com/adammessinger/Flexitable
- Copyright (c) 2015 Adam Messinger, http://zenscope.com/
+ Copyright (c) 2016 Adam Messinger, http://zenscope.com/
  Released under the MIT license, see LICENSE file for details.
 
  This plugin owes its starting point to the work of Marco Pegoraro (movableapp.com):
@@ -479,10 +479,15 @@
     var i = 0;
     var length = collection.length;
     var is_array = _isArraylike(collection);
-    var parent_deferred = new $.Deferred();
+    var has_empty_collection = (is_array && !length) || $.isEmptyObject(collection);
+    var parent_deferred = $.Deferred();
     var child_deferreds;
     var keys = [];
     var next, key;
+
+    if (has_empty_collection) {
+      return parent_deferred.resolve().promise();
+    }
 
     if (is_array) {
       child_deferreds = _makeChildDeferredsArray(length);
@@ -517,6 +522,7 @@
       parent_deferred.notify(1, i, notify_length);
       parent_deferred.resolve(collection);
     });
+
     return parent_deferred.promise();
   };
 
@@ -525,7 +531,7 @@
     var array = [];
 
     for (; i < length; i++) {
-      array.push(new $.Deferred());
+      array.push($.Deferred());
     }
     return array;
   }
@@ -540,7 +546,6 @@
     if (obj.nodeType === 1 && length) {
       return true;
     }
-    return type === "array" || length === 0 ||
-           (typeof length === "number" && length > 0 && (length - 1) in obj);
+    return type === "array" || length === 0 || (typeof length === "number" && length > 0 && (length - 1) in obj);
   }
 })(jQuery);
