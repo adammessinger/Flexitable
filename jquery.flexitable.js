@@ -318,7 +318,7 @@
           // passing (1 - amount_done) to run progress meter backward for destroy
           _updateProgressMeter((1 - amount_done), count, length);
         })
-        .then(function() {
+        .always(function() {
           view_model.$toolbar.remove();
           // remove stored plugin data on the table
           view_model.$table.removeData('Flexitable');
@@ -480,13 +480,17 @@
     var length = collection.length;
     var is_array = _isArraylike(collection);
     var has_empty_collection = (is_array && !length) || $.isEmptyObject(collection);
+    var has_invalid_callback = (!callback || typeof callback !== 'function');
     var parent_deferred = $.Deferred();
     var child_deferreds;
     var keys = [];
     var next, key;
 
     if (has_empty_collection) {
-      return parent_deferred.resolve().promise();
+      return parent_deferred.reject(collection, 'error: empty collection').promise();
+    }
+    if (has_invalid_callback) {
+      return parent_deferred.reject(collection, 'error: invalid callback').promise();
     }
 
     if (is_array) {
@@ -520,7 +524,7 @@
       var notify_length = is_array ? length : keys.length;
 
       parent_deferred.notify(1, i, notify_length);
-      parent_deferred.resolve(collection);
+      parent_deferred.resolve(collection, 'done');
     });
 
     return parent_deferred.promise();
