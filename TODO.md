@@ -22,8 +22,8 @@
 * [ ] Keep track of CSS selectors in a module-scope map object, so there's only
       one place to find and change them.
 * [ ] Table search/filter, if it can be made fast enough. This quick proof-of-concept 
-      was reasonably fast on a table with 4200 rows and 34 columns, with showing/hiding
-      being the slowest part:
+      was reasonably fast on a table with 4200 rows and 34 columns, with the search
+      term sprinkled across a few rows:
 
       ```javascript
       function testSearch(search_str) {
@@ -36,7 +36,7 @@
           row_strings[i] = $(el).text().toLocaleLowerCase().trim().replace(/\s{2,}/g, ' ');
         });
       
-        console.log(foo);
+        console.log(row_strings);
       
         search_str = search_str.toLocaleLowerCase();
       
@@ -54,6 +54,8 @@
       
       testSearch('zorb');
       ```
+
+      Showing/hiding rows was the only really slow part.
 * [x] Lazy caching of column cells in `column_maps_list[i].$cells` -- 
       leave `null` to start with, then query & cache when checked/unchecked in
       menu. Preliminary tests show that this would reduce by more than half the
