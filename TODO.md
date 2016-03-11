@@ -30,7 +30,6 @@
         var $rows = $('tbody > tr');
         var row_strings = [];
         var rows_hidden = [];
-        hidden = null;
       
         $rows.each(function(i, el) {
           row_strings[i] = $(el).text().toLocaleLowerCase().trim().replace(/\s{2,}/g, ' ');
@@ -40,7 +39,7 @@
       
         search_str = search_str.toLocaleLowerCase();
       
-        for (var i = 0, l = all.length; i < l; i++) {
+        for (var i = 0, l = row_strings.length; i < l; i++) {
           if (row_strings[i].indexOf(search_str) === -1) {
             rows_hidden.push($rows[i]);
           }
