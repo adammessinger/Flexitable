@@ -21,7 +21,39 @@
       code reuse for search/filter easier if we go that route.
 * [ ] Keep track of CSS selectors in a module-scope map object, so there's only
       one place to find and change them.
-* [ ] table search/filter, if it can be made fast enough
+* [ ] Table search/filter, if it can be made fast enough. This quick proof-of-concept 
+      was reasonably fast on a table with 4200 rows and 34 columns, with showing/hiding
+      being the slowest part:
+
+      ```javascript
+      function testSearch(search_str) {
+        var $rows = $('tbody > tr');
+        var row_strings = [];
+        var rows_hidden = [];
+        hidden = null;
+      
+        $rows.each(function(i, el) {
+          row_strings[i] = $(el).text().toLocaleLowerCase().trim().replace(/\s{2,}/g, ' ');
+        });
+      
+        console.log(foo);
+      
+        search_str = search_str.toLocaleLowerCase();
+      
+        for (var i = 0, l = all.length; i < l; i++) {
+          if (row_strings[i].indexOf(search_str) === -1) {
+            rows_hidden.push($rows[i]);
+          }
+        }
+      
+        console.log(rows_hidden);
+        
+        console.log($rows.filter(rows_hidden).addClass('flexitable-hidden'));
+        console.log($rows.not(rows_hidden).removeClass('flexitable-hidden'));
+      }
+      
+      testSearch('zorb');
+      ```
 * [x] Lazy caching of column cells in `column_maps_list[i].$cells` -- 
       leave `null` to start with, then query & cache when checked/unchecked in
       menu. Preliminary tests show that this would reduce by more than half the
